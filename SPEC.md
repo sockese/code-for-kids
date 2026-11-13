@@ -32,10 +32,11 @@ Objectif : une application **originale**, dans le même esprit pédagogique (ass
   - boîte à outils limitée aux blocs utiles pour le niveau.
 - Chaque niveau a une consigne, un indice, et une solution (réservée à l'adulte : bouton discret « Voir la solution »).
 
-## 6. Séries de niveaux (64 niveaux, série G « Défis » ajoutée)
+## 6. Séries de niveaux (74 niveaux, séries H « Directions » et G « Défis » ajoutées)
 | Série | Thème | Blocs introduits | Niveaux |
 |---|---|---|---|
 | A | Instructions | avancer, tourner, couleur, crayon | 7 |
+| H | Directions | aller en haut / bas / droite / gauche | 10 |
 | B | Paramètres | longueurs et angles variés | 6 |
 | C | Boucles | répéter | 10 |
 | D | Boucles imbriquées | répéter dans répéter | 9 |
@@ -60,3 +61,11 @@ Chaque niveau possède une solution en blocs ; un script de test charge toutes l
 
 ## 11. Mode clair / sombre
 Bouton en haut à droite ; suit par défaut le réglage de l'ordinateur, choix mémorisé. S'applique aussi à l'éditeur de blocs et à la zone de dessin.
+
+## 12. Évolutions (version 2)
+- **Vignettes** : chaque niveau de la liste montre le dessin à réaliser.
+- **Aucune saisie de nombre** : toutes les valeurs se choisissent dans des listes adaptées au niveau (3 à 5 valeurs ; boucles de 2 à 10). Les variables sont déjà créées par le niveau.
+- **Blocs « Directions »** (haut, bas, droite, gauche) et la série H qui va avec.
+- Bloc « ▶ quand on exécute » toujours en haut à droite de la zone de blocs.
+- **Curseur de vitesse** (5 crans) à la place de la liste.
+- **Page sans défilement** : la zone de blocs et le dessin s'adaptent à la hauteur de l'écran ; message, indice et code s'affichent en superposition.

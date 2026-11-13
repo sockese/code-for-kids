@@ -6,8 +6,10 @@
 
   var RANKS = ['Œuf', 'Têtard', 'Tortillon', 'Petite tortue', 'Tortue curieuse', 'Tortue maligne', 'Tortue habile',
     'Tortue astucieuse', 'Tortue savante', 'Tortue experte', 'Tortue maître', 'Tortue sage', 'Tortue héroïque', 'Tortue légendaire'];
-  var SPEEDS = { lent: 2.5, normal: 7, rapide: 24, instantane: Infinity };
-  var TOOL_ALL = ['move', 'color', 'pen', 'loop', 'var', 'math', 'func'];
+  // Curseur de vitesse : 1 (très lent) à 5 (instantané), en pixels par image.
+  var SPEEDS = [1.5, 4.5, 11, 32, Infinity];
+  var SPEED_NAMES = ['très lent', 'lent', 'normal', 'rapide', 'instantané'];
+  var TOOL_ALL = ['move', 'dir', 'color', 'pen', 'loop', 'var', 'math', 'func'];
   var BLOCK_LABELS = {
     controls_repeat_ext: 'répéter', variables_set: 'mettre … à', variables_get: 'une variable (le bloc avec son nom)',
     math_change: 'ajouter … à', math_arithmetic: 'un calcul (+ − × ÷)', procedures_defnoreturn: 'une fonction (définition)',
@@ -72,6 +74,8 @@
     } catch (e) { /* pas de son */ }
   }
 
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
   /* ---------- en-tête ---------- */
   function renderHeader(route) {
     var p = data.current && profile();
@@ -91,7 +95,6 @@
     var snd = $('#snd');
     if (snd) snd.onclick = function () { data.sound = !data.sound; save(); snd.textContent = data.sound ? '🔊' : '🔇'; beep([660]); };
   }
-  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
   /* ---------- connexion ---------- */
   function viewLogin() {
@@ -123,7 +126,18 @@
   }
   function login(n) { data.current = n; save(); location.hash = '#/liste'; route(); }
 
-  /* ---------- liste des niveaux ---------- */
+  /* ---------- liste des niveaux (avec vignettes) ---------- */
+  function drawThumb(c) {
+    var lv = TB.LEVEL_BY_ID[c.dataset.id];
+    var prep = TB.prepareLevel(lv);
+    var big = document.createElement('canvas'); big.width = big.height = TB.SIZE;
+    var g = big.getContext('2d');
+    TB.drawSegments(g, prep.segs, prep.map, 20, lv.colors ? 'color' : 'black');
+    if (!lv.colors) { g.globalCompositeOperation = 'source-in'; g.fillStyle = isDark() ? '#7fbcf7' : '#2f6fb3'; g.fillRect(0, 0, TB.SIZE, TB.SIZE); }
+    var t = c.getContext('2d');
+    t.clearRect(0, 0, c.width, c.height);
+    t.drawImage(big, 0, 0, c.width, c.height);
+  }
   function viewList() {
     renderHeader('liste');
     var p = profile(), html = '';
@@ -134,12 +148,22 @@
         '<p>' + s.desc + '</p><div class="pills">';
       lvs.forEach(function (l) {
         var rec = p.done[l.id];
-        html += '<a class="pill ' + (rec ? 'done' : '') + '" href="#/niveau/' + l.id + '">' + l.label +
-          '<small>' + esc(l.title) + '</small><span class="stars">' + (rec ? (rec.blocks <= l.par ? '★★' : '★☆') : '') + '</span></a>';
+        html += '<a class="pill ' + (rec ? 'done' : '') + '" href="#/niveau/' + l.id + '"><canvas class="thumb" width="104" height="104" data-id="' + l.id + '"></canvas>' +
+          '<b>' + l.label + '</b><small>' + esc(l.title) + '</small><span class="stars">' + (rec ? (rec.blocks <= l.par ? '★★' : '★☆') : '') + '</span></a>';
       });
       html += '</div></section>';
     });
     $('#view').innerHTML = html;
+    var cvs = Array.prototype.slice.call(document.querySelectorAll('canvas.thumb')), i = 0;
+    (function next() {
+      var t0 = performance.now();
+      while (i < cvs.length && performance.now() - t0 < 14) {
+        if (!cvs[i].isConnected) return;
+        try { drawThumb(cvs[i]); } catch (e) { /* vignette ignorée */ }
+        i++;
+      }
+      if (i < cvs.length) setTimeout(next, 0);
+    })();
   }
 
   /* ---------- état du niveau ouvert ---------- */
@@ -155,48 +179,96 @@
 
   function startXml() { return '<xml xmlns="https://developers.google.com/blockly/xml"><block type="fr_start" x="20" y="20" deletable="false"></block></xml>'; }
 
+  /* Le bloc de départ reste toujours en haut à droite de la zone de blocs. */
+  function placeStart() {
+    if (!cur) return;
+    var ws = cur.ws;
+    var s = ws.getTopBlocks(false).filter(function (b) { return b.type === 'fr_start'; })[0];
+    if (!s) return;
+    var m = ws.getMetrics(), sc = ws.scale || 1;
+    var viewW = m.viewWidth / sc, left = (m.viewLeft - m.contentLeft * 0) / sc;
+    var wantX = left + viewW - (s.getHeightWidth().width + 26) - 8;
+    var xy = s.getRelativeToSurfaceXY();
+    var targetX = Math.max(left + 8, wantX), targetY = (m.viewTop / sc) + 14;
+    if (Math.abs(xy.x - targetX) > 1 || Math.abs(xy.y - targetY) > 1) s.moveBy(targetX - xy.x, targetY - xy.y);
+  }
+
+  /* Adapte la page à la taille de l'écran : jamais de défilement de la page. */
+  function fitLayout() {
+    if (!cur) return;
+    document.documentElement.style.setProperty('--top', $('#topbar').offsetHeight + 'px');
+    var body = $('#lbody'), side = $('#side');
+    if (!body || !side) return;
+    var W = body.clientWidth, H = body.clientHeight, cvw = $('#cvw'), cv;
+    var landscape = W >= 640 && W >= H * 1.1;
+    function apply(size) {
+      side.style.width = size + 'px';
+      cvw.style.width = size + 'px'; cvw.style.height = size + 'px';
+    }
+    if (landscape) {
+      body.classList.remove('stack');
+      cv = Math.max(200, Math.min(H - 100, W * 0.5, 640));
+      body.style.gridTemplateColumns = 'minmax(0,1fr) ' + cv + 'px';
+      body.style.gridTemplateRows = '100%';
+      apply(cv);
+      // si les boutons passent sur deux lignes, on réduit le dessin pour que tout tienne
+      var over = side.scrollHeight - H;
+      if (over > 0) { cv = Math.max(180, cv - over); body.style.gridTemplateColumns = 'minmax(0,1fr) ' + cv + 'px'; apply(cv); }
+    } else {
+      body.classList.add('stack');
+      cv = Math.max(180, Math.min(W, H * 0.48 - 90));
+      body.style.gridTemplateColumns = 'minmax(0,1fr)';
+      body.style.gridTemplateRows = 'minmax(0,1fr) auto';
+      apply(cv);
+    }
+    Blockly.svgResize(cur.ws);
+    placeStart();
+  }
+
   function viewLevel(id) {
     var lv = id === 'libre' ? null : TB.LEVEL_BY_ID[id];
     if (id !== 'libre' && !lv) { location.hash = '#/liste'; return; }
     renderHeader(lv ? 'niveau' : 'libre');
-    var free = !lv;
-    var prep = null;
+    var free = !lv, prep = null;
+    TB.useLevel(lv);
     if (lv) {
       try { prep = TB.prepareLevel(lv); } catch (e) { $('#view').innerHTML = '<div class="card">Erreur de niveau : ' + esc(e.message) + '</div>'; return; }
     }
-    var next = lv ? TB.LEVELS[lv.index + 1] : null;
-    var titleHtml = lv ? '<span class="badge">' + lv.label + '</span><h2>' + esc(lv.title) + '</h2>' : '<span class="badge">✏️</span><h2>Création libre</h2>';
+    var next = lv ? TB.LEVELS[lv.index + 1] : null, prev = lv && lv.index > 0 ? TB.LEVELS[lv.index - 1] : null;
+    $('#view').className = 'is-level';
     $('#view').innerHTML =
-      '<div class="level-head"><a class="btn small" href="#/liste">← Niveaux</a>' + titleHtml + '<span class="spacer"></span>' +
-      (lv && lv.index > 0 ? '<a class="btn small" href="#/niveau/' + TB.LEVELS[lv.index - 1].id + '">◀ Précédent</a>' : '') +
-      (next ? '<a class="btn small" href="#/niveau/' + next.id + '">Suivant ▶</a>' : '') + '</div>' +
-      '<div class="instruction">' + (lv ? esc(lv.text) : 'Dessine ce que tu veux ! Tous les blocs sont disponibles : mouvements, couleurs, boucles, variables et fonctions.') + '</div>' +
-      '<div class="level-body"><div class="ws-wrap"><div id="blockly"></div><div class="counter" id="counter"></div></div>' +
-      '<div class="side"><div class="canvas-wrap"><canvas id="cv" width="600" height="600"></canvas></div>' +
-      '<div class="controls"><button class="btn go" id="run">▶ Exécuter</button><button class="btn stop" id="stop" disabled>⏹ Stop</button>' +
-      '<label>Vitesse <select id="speed"><option value="lent">🐢 lent</option><option value="normal" selected>normal</option><option value="rapide">🐇 rapide</option><option value="instantane">⚡ instantané</option></select></label>' +
-      '<label><input type="checkbox" id="grid"> Grille</label></div>' +
-      '<div class="msg" id="msg"></div>' +
-      '<div class="tools2">' + (lv ? '<button class="btn small" id="hint">💡 Indice</button>' : '<button class="btn small" id="clear">🧽 Effacer le dessin</button>') +
+      '<section class="level"><div class="level-head"><a class="btn small" href="#/liste">← Niveaux</a>' +
+      (lv ? '<span class="badge">' + lv.label + '</span><h2>' + esc(lv.title) + '</h2>' : '<span class="badge">✏️</span><h2>Création libre</h2>') +
+      '<span class="spacer"></span>' +
+      (prev ? '<a class="btn small" href="#/niveau/' + prev.id + '">◀</a>' : '') +
+      (next ? '<a class="btn small" href="#/niveau/' + next.id + '">▶</a>' : '') + '</div>' +
+      '<div class="instruction">' + (lv ? esc(lv.text) : 'Dessine ce que tu veux ! Tous les blocs sont disponibles.') + '</div>' +
+      '<div class="level-body" id="lbody"><div class="ws-wrap"><div id="blockly"></div><div class="counter" id="counter"></div></div>' +
+      '<div class="side" id="side"><div class="canvas-wrap" id="cvw"><canvas id="cv" width="600" height="600"></canvas><div class="msg" id="msg"></div></div>' +
+      '<div class="controls"><button class="btn go" id="run">▶ Exécuter</button><button class="btn stop" id="stop" disabled>⏹</button>' +
+      '<label class="speed" title="Vitesse"><span>🐢</span><input type="range" id="speed" min="1" max="5" step="1" value="3"><span>🐇</span></label>' +
+      '<label class="chk"><input type="checkbox" id="grid"> Grille</label></div>' +
+      '<div class="tools2">' + (lv ? '<button class="btn small" id="hint">💡 Indice</button>' : '<button class="btn small" id="clear">🧽 Effacer</button>') +
       '<button class="btn small" id="reset">↺ Recommencer</button>' +
-      (lv ? '<button class="btn small" id="sol" title="Pour les adultes">👀 Solution</button>' : '') + '</div>' +
-      '<details id="codebox"><summary>Voir le code</summary><pre id="code"></pre></details></div></div>';
+      (lv ? '<button class="btn small" id="sol" title="Pour les adultes">👀 Solution</button>' : '') +
+      '<button class="btn small" id="codebtn">{ } Code</button></div></div></div></section>';
 
     var groups = lv ? lv.tools : TOOL_ALL;
     var ws = Blockly.inject('blockly', {
       toolbox: TB.buildToolbox(groups), media: 'vendor/media/', trashcan: true, sounds: false,
-      zoom: { controls: true, wheel: true, startScale: 0.95, minScale: 0.5, maxScale: 1.6, scaleSpeed: 1.2 },
+      zoom: { controls: true, wheel: true, startScale: 0.9, minScale: 0.5, maxScale: 1.6, scaleSpeed: 1.2 },
       theme: blocklyTheme(), grid: { spacing: 25, length: 3, colour: isDark() ? '#2b374f' : '#e3e9f1', snap: true }, renderer: 'geras'
     });
+    TB.installCategories(ws);
     var cv = $('#cv'), ctx = cv.getContext('2d');
     var layer = document.createElement('canvas'); layer.width = layer.height = TB.SIZE;
     cur = {
       lv: lv, free: free, prep: prep, ws: ws, cv: cv, ctx: ctx, layer: layer, lctx: layer.getContext('2d'),
       map: prep ? prep.map : { zoom: 1, cx: 0, cy: 0 },
-      t: { x: 0, y: 0, a: 0 }, playing: false, raf: 0, speed: 'normal', grid: false
+      t: { x: 0, y: 0, a: 0 }, playing: false, raf: 0, speed: 3, grid: false
     };
     cur.lctx.lineCap = 'round';
-    cur.onResize = function () { Blockly.svgResize(ws); };
+    cur.onResize = fitLayout;
     window.addEventListener('resize', cur.onResize);
 
     // Chargement : blocs sauvegardés ou départ vide
@@ -209,36 +281,56 @@
       if (loaded) ws.clear();
       TB.loadXml(ws, startXml());
     }
+    ensureVariables();
     ws.addChangeListener(function (ev) {
       if (ev.isUiEvent) return;
-      refreshCounter(); refreshCode();
+      refreshCounter();
       if (lv) {
         try { profile().ws[lv.id] = JSON.stringify(Blockly.serialization.workspaces.save(ws)); save(); } catch (e) { /* ignoré */ }
       }
     });
-    setTimeout(function () { Blockly.svgResize(ws); }, 0);
+    fitLayout();
+    setTimeout(fitLayout, 60);
+    setTimeout(fitLayout, 400);
 
-    refreshCounter(); refreshCode(); resetTurtle(); draw();
+    refreshCounter(); resetTurtle(); draw();
 
     $('#run').onclick = run;
     $('#stop').onclick = function () { stopPlay(false); setMsg('Arrêté.', 'warn'); };
-    $('#speed').onchange = function (e) { cur.speed = e.target.value; };
+    $('#speed').oninput = function (e) { cur.speed = Number(e.target.value); $('#speed').title = 'Vitesse : ' + SPEED_NAMES[cur.speed - 1]; };
     $('#grid').onchange = function (e) { cur.grid = e.target.checked; draw(); };
+    $('#msg').onclick = function () { setMsg('', ''); };
+    $('#codebtn').onclick = showCode;
     $('#reset').onclick = function () {
       if (!confirm('Supprimer tous tes blocs et recommencer ce niveau ?')) return;
-      stopPlay(true); ws.clear(); TB.loadXml(ws, startXml()); clearDrawing(); setMsg('', '');
+      stopPlay(true); ws.clear(); TB.loadXml(ws, startXml()); ensureVariables(); clearDrawing(); setMsg('', ''); placeStart();
       if (lv) { delete profile().ws[lv.id]; save(); }
     };
     if (lv) {
       $('#hint').onclick = function () { setMsg('💡 ' + lv.hint, 'hint'); };
       $('#sol').onclick = function () {
         if (!confirm('Afficher la solution ? (Cela remplace tes blocs actuels.)')) return;
-        stopPlay(true); ws.clear(); TB.loadXml(ws, prep.xml); clearDrawing();
+        stopPlay(true); ws.clear(); TB.loadXml(ws, prep.xml); ensureVariables(); clearDrawing(); placeStart();
         setMsg('Voici une solution possible. Clique sur Exécuter pour la voir dessiner !', 'hint');
       };
     } else {
       $('#clear').onclick = function () { stopPlay(true); clearDrawing(); };
     }
+  }
+
+  /* Les variables du niveau sont déjà créées : l'enfant n'a rien à taper. */
+  function ensureVariables() {
+    if (!cur) return;
+    (TB.opts.vars || []).forEach(function (n) { if (!cur.ws.getVariable(n)) cur.ws.createVariable(n); });
+  }
+
+  function showCode() {
+    var code = '';
+    try { code = TB.generateCode(cur.ws, false).trim(); } catch (e) { code = '// (code indisponible)'; }
+    var root = $('#modal-root');
+    root.innerHTML = '<div class="overlay"><div class="dialog code"><h2>Le code de ton programme</h2><pre>' + esc(code || '// (aucun bloc)') +
+      '</pre><div class="row"><button class="btn primary" id="m-close">Fermer</button></div></div></div>';
+    $('#m-close').onclick = function () { root.innerHTML = ''; };
   }
 
   function setMsg(text, kind) {
@@ -254,13 +346,6 @@
       var max = cur.prep.par + 1;
       el.textContent = 'Blocs : ' + n + ' / ' + max; el.className = 'counter' + (n > max ? ' over' : '');
     } else { el.textContent = 'Blocs : ' + n; el.className = 'counter'; }
-  }
-  function refreshCode() {
-    if (!cur) return;
-    try {
-      var code = TB.generateCode(cur.ws, false).replace(/^var [^;]+;\n\n?/m, function (m) { return m; });
-      $('#code').textContent = code.trim() || '// (aucun bloc)';
-    } catch (e) { $('#code').textContent = '// (code indisponible)'; }
   }
 
   /* ---------- dessin ---------- */
@@ -283,7 +368,6 @@
     c.drawImage(cur.layer, 0, 0);
     var p = TB.px(cur.map, cur.t.x, cur.t.y);
     c.save(); c.translate(p[0], p[1]); c.rotate(cur.t.a * Math.PI / 180);
-    // petite tortue vue de dessus
     c.fillStyle = '#2e7d32'; c.strokeStyle = '#1b5e20'; c.lineWidth = 2;
     [[-10, -8], [10, -8], [-10, 9], [10, 9]].forEach(function (l) { c.beginPath(); c.arc(l[0], l[1], 4.5, 0, 7); c.fill(); c.stroke(); });
     c.beginPath(); c.arc(0, -15, 6, 0, 7); c.fill(); c.stroke();
@@ -321,7 +405,7 @@
 
   function frame() {
     if (!cur || !cur.playing) return;
-    var budget = SPEEDS[cur.speed], map = cur.map, hlHold = cur.speed === 'lent' ? 8 : (cur.speed === 'normal' ? 2 : 0);
+    var budget = SPEEDS[cur.speed - 1], map = cur.map, hlHold = cur.speed <= 1 ? 8 : (cur.speed === 2 ? 4 : (cur.speed === 3 ? 1 : 0));
     while (cur.i < cur.cmds.length) {
       if (cur.hold > 0) { cur.hold--; break; }
       var c = cur.cmds[cur.i];
@@ -336,7 +420,6 @@
         if (budget !== Infinity) budget -= 6;
         continue;
       }
-      // ligne
       var len = Math.hypot(c.x1 - c.x0, c.y1 - c.y0), lenPx = len * map.zoom;
       var remPx = lenPx * (1 - cur.prog), from = cur.prog, to, done;
       cur.t.a = c.a;
@@ -390,7 +473,6 @@
       else why = 'Presque ! Il manque encore une partie du modèle gris.';
       setMsg(why + ' Utilise 💡 Indice si tu as besoin d’aide.' + orphanNote, 'warn'); beep([220]); return;
     }
-    // Dessin correct : on vérifie les contraintes pédagogiques
     var used = {};
     ws.getAllBlocks(false).forEach(function (b) { used[b.type] = true; });
     var missing = (lv.require || []).filter(function (t) { return !used[t]; });
@@ -462,12 +544,20 @@
         if (n !== lv.par) { ok = false; status.push('blocs ' + n + ' ≠ par ' + lv.par); }
         var used = {}; ws.getAllBlocks(false).forEach(function (b) { used[b.type] = true; });
         (lv.require || []).forEach(function (t) { if (!used[t]) { ok = false; status.push('manque ' + t); } });
+        // Chaque nombre de la solution doit exister dans les listes proposées
+        ws.getAllBlocks(false).forEach(function (b) {
+          if (b.type.indexOf('fr_num_') === 0) {
+            var kind = b.type.slice(7), v = Number(b.getFieldValue('V'));
+            if (lv.opts[kind].indexOf(v) < 0) { ok = false; status.push('valeur ' + v + ' absente de la liste ' + kind); }
+          }
+        });
+        if (lv.opts.len.length > 6 || lv.opts.ang.length > 6 || lv.opts.val.length > 6) status.push('liste longue');
         // test négatif : un trait en trop doit être refusé
         var bad = TB.execute('avancer(30);\n' + TB.generateCode(ws, false));
         var cmpBad = TB.compare(TB.segments(bad.cmds), prep.segs, prep.map, !!lv.colors);
         if (cmpBad.ok) { ok = false; status.push('trait en trop accepté !'); }
         ws.dispose();
-        status.push(prep.segs.length + ' traits, zoom ' + prep.map.zoom.toFixed(2) + ', ' + n + ' blocs');
+        status.push(prep.segs.length + ' traits, zoom ' + prep.map.zoom.toFixed(2) + ', ' + n + ' blocs, longueurs ' + lv.opts.len.join('/') + ', angles ' + lv.opts.ang.join('/'));
       } catch (e) { ok = false; status.push('ERREUR ' + e.message); }
       if (!ok) fails++;
       rows += '<tr><td>' + lv.label + '</td><td>' + esc(lv.title) + '</td><td class="' + (ok ? 'okc' : 'koc') + '">' + (ok ? 'OK' : 'ÉCHEC') + '</td><td>' + esc(status.join(' ; ')) + '</td></tr>';
@@ -480,6 +570,7 @@
   function route() {
     var h = location.hash || '';
     disposeCurrent();
+    $('#view').className = '';
     $('#modal-root').innerHTML = '';
     if (h === '#test') { viewTest(); return; }
     if (!data.current || !data.profiles[data.current] || h === '#/connexion') { viewLogin(); return; }

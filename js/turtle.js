@@ -39,6 +39,10 @@
         a = (((a - num(d)) % 360) + 360) % 360;
         cmds.push({ t: 'turn', a: a }); check();
       },
+      allerHaut: function (n) { a = 0; cmds.push({ t: 'turn', a: a }); api.avancer(n); },
+      allerDroite: function (n) { a = 90; cmds.push({ t: 'turn', a: a }); api.avancer(n); },
+      allerBas: function (n) { a = 180; cmds.push({ t: 'turn', a: a }); api.avancer(n); },
+      allerGauche: function (n) { a = 270; cmds.push({ t: 'turn', a: a }); api.avancer(n); },
       couleur: function (c) { col = TB.COLORS[c] ? c : TB.DEFAULT_COLOR; },
       leverCrayon: function () { pen = false; },
       baisserCrayon: function () { pen = true; },
@@ -47,9 +51,9 @@
 
     try {
       var fn = new Function('avancer', 'droite', 'gauche', 'couleur', 'leverCrayon', 'baisserCrayon',
-        'highlightBlock', 'loopBudget', code);
+        'highlightBlock', 'loopBudget', 'allerHaut', 'allerDroite', 'allerBas', 'allerGauche', code);
       fn(api.avancer, api.droite, api.gauche, api.couleur, api.leverCrayon, api.baisserCrayon,
-        api.highlightBlock, 100000);
+        api.highlightBlock, 100000, api.allerHaut, api.allerDroite, api.allerBas, api.allerGauche);
     } catch (e) {
       var kind = 'autre';
       if (e === 'valeur') kind = 'valeur';
