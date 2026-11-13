@@ -1,0 +1,21 @@
+TORTUE BLOCS — apprendre à programmer en dessinant
+==================================================
+
+Pour jouer : double-cliquer sur « index.html » (Chrome, Edge ou Firefox).
+Aucune installation, pas besoin d'Internet.
+
+- On tape son prénom (pas de mot de passe). La progression est sauvegardée dans le navigateur,
+  sur cet ordinateur (même navigateur, même profil).
+- 64 niveaux en 7 séries (A à G), tous ouverts : Instructions, Paramètres, Boucles,
+  Boucles imbriquées, Variables, Fonctions, Défis. Plus un mode clair/sombre (bouton en haut) et un mode « Création libre ».
+- Bouton « 💡 Indice » dans chaque niveau, « 👀 Solution » réservé aux adultes.
+- Page de test automatique des niveaux : index.html#test
+
+Fichiers
+  SPEC.md           la spécification
+  DEPLOIEMENT.md    installation sur tablette Android (mode appli, hors ligne)
+  index.html        la page
+  css/ js/          le code de l'application
+  vendor/           Blockly (Google, licence Apache 2.0) pour l'éditeur de blocs
+
+Tous les niveaux et graphismes sont originaux ; rien n'est copié depuis algoblocs.fr.
