@@ -32,7 +32,7 @@ Objectif : une application **originale**, dans le même esprit pédagogique (ass
   - boîte à outils limitée aux blocs utiles pour le niveau.
 - Chaque niveau a une consigne, un indice, et une solution (réservée à l'adulte : bouton discret « Voir la solution »).
 
-## 6. Séries de niveaux (74 niveaux, séries H « Directions » et G « Défis » ajoutées)
+## 6. Séries de niveaux (75 niveaux, séries H « Directions » et G « Défis » ajoutées)
 | Série | Thème | Blocs introduits | Niveaux |
 |---|---|---|---|
 | A | Instructions | avancer, tourner, couleur, crayon | 7 |
@@ -69,3 +69,11 @@ Bouton en haut à droite ; suit par défaut le réglage de l'ordinateur, choix m
 - Bloc « ▶ quand on exécute » toujours en haut à droite de la zone de blocs.
 - **Curseur de vitesse** (5 crans) à la place de la liste.
 - **Page sans défilement** : la zone de blocs et le dessin s'adaptent à la hauteur de l'écran ; message, indice et code s'affichent en superposition.
+
+## 13. Corrections (version 3)
+- Bloc « ▶ quand on exécute » en **haut à gauche** de la zone de blocs.
+- **Longueurs d'avancée : 100, 200 ou 400 uniquement** (liste fixe, très différente) ; tous les niveaux ont été redessinés en conséquence.
+- **Grille alignée** sur le dessin modèle : un carreau = 100 unités, la tortue part d'un nœud de la grille. Affichée par défaut.
+- **Modèle en couleur légère**, qui devient plus foncé quand le dessin est réussi.
+- **Tous les blocs visibles** à gauche, sans sous-menu (liste unique) ; les fonctions créées par l'enfant s'ajoutent automatiquement à la liste.
+- **Série D** refaite : d'abord des figures répétées en ligne (tour, rangée, escalier, train, damier, triangles espacés), puis seulement des figures qui tournent.

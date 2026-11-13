@@ -6,7 +6,7 @@ Aucune installation, pas besoin d'Internet.
 
 - On tape son prénom (pas de mot de passe). La progression est sauvegardée dans le navigateur,
   sur cet ordinateur (même navigateur, même profil).
-- 74 niveaux en 8 séries (A à H), tous ouverts : Instructions, Directions, Paramètres, Boucles,
+- 75 niveaux en 8 séries (A à H), tous ouverts : Instructions, Directions, Paramètres, Boucles,
   Boucles imbriquées, Variables, Fonctions, Défis. Plus un mode clair/sombre (bouton en haut) et un mode « Création libre ».
 - Bouton « 💡 Indice » dans chaque niveau, « 👀 Solution » réservé aux adultes.
 - Page de test automatique des niveaux : index.html#test

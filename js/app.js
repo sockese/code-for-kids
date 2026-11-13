@@ -179,18 +179,33 @@
 
   function startXml() { return '<xml xmlns="https://developers.google.com/blockly/xml"><block type="fr_start" x="20" y="20" deletable="false"></block></xml>'; }
 
-  /* Le bloc de départ reste toujours en haut à droite de la zone de blocs. */
+  /* Le bloc de départ reste toujours en haut à gauche de la zone de blocs (à droite du menu des blocs). */
   function placeStart() {
     if (!cur) return;
     var ws = cur.ws;
     var s = ws.getTopBlocks(false).filter(function (b) { return b.type === 'fr_start'; })[0];
     if (!s) return;
     var m = ws.getMetrics(), sc = ws.scale || 1;
-    var viewW = m.viewWidth / sc, left = (m.viewLeft - m.contentLeft * 0) / sc;
-    var wantX = left + viewW - (s.getHeightWidth().width + 26) - 8;
+    var targetX = m.viewLeft / sc + 16 / sc, targetY = m.viewTop / sc + 14 / sc;
     var xy = s.getRelativeToSurfaceXY();
-    var targetX = Math.max(left + 8, wantX), targetY = (m.viewTop / sc) + 14;
     if (Math.abs(xy.x - targetX) > 1 || Math.abs(xy.y - targetY) > 1) s.moveBy(targetX - xy.x, targetY - xy.y);
+  }
+
+  /* Boîte à outils plate, remise à jour quand l'enfant crée une fonction ou un paramètre. */
+  function toolboxEnv() {
+    var ws = cur.ws, vars = [];
+    (TB.opts.vars || []).forEach(function (n) { if (vars.indexOf(n) < 0) vars.push(n); });
+    ws.getAllVariables().forEach(function (v) { if (vars.indexOf(v.name) < 0) vars.push(v.name); });
+    var procs = Blockly.Procedures.allProcedures(ws)[0].map(function (p) { return [p[0], p[1]]; });
+    return { vars: vars, procs: procs };
+  }
+  function refreshToolbox(force) {
+    if (!cur) return;
+    var env = toolboxEnv(), sig = JSON.stringify(env);
+    if (!force && sig === cur.toolSig) return;
+    cur.toolSig = sig;
+    cur.ws.updateToolbox(TB.buildToolbox(cur.groups, env));
+    setTimeout(function () { if (cur) { Blockly.svgResize(cur.ws); placeStart(); } }, 0);
   }
 
   /* Adapte la page à la taille de l'écran : jamais de défilement de la page. */
@@ -247,25 +262,25 @@
       '<div class="side" id="side"><div class="canvas-wrap" id="cvw"><canvas id="cv" width="600" height="600"></canvas><div class="msg" id="msg"></div></div>' +
       '<div class="controls"><button class="btn go" id="run">▶ Exécuter</button><button class="btn stop" id="stop" disabled>⏹</button>' +
       '<label class="speed" title="Vitesse"><span>🐢</span><input type="range" id="speed" min="1" max="5" step="1" value="3"><span>🐇</span></label>' +
-      '<label class="chk"><input type="checkbox" id="grid"> Grille</label></div>' +
+      '<label class="chk"><input type="checkbox" id="grid" checked> Grille</label></div>' +
       '<div class="tools2">' + (lv ? '<button class="btn small" id="hint">💡 Indice</button>' : '<button class="btn small" id="clear">🧽 Effacer</button>') +
       '<button class="btn small" id="reset">↺ Recommencer</button>' +
       (lv ? '<button class="btn small" id="sol" title="Pour les adultes">👀 Solution</button>' : '') +
       '<button class="btn small" id="codebtn">{ } Code</button></div></div></div></section>';
 
     var groups = lv ? lv.tools : TOOL_ALL;
+    var firstEnv = { vars: (lv ? lv.opts.vars : TB.FREE_OPTS.vars), procs: [] };
     var ws = Blockly.inject('blockly', {
-      toolbox: TB.buildToolbox(groups), media: 'vendor/media/', trashcan: true, sounds: false,
-      zoom: { controls: true, wheel: true, startScale: 0.9, minScale: 0.5, maxScale: 1.6, scaleSpeed: 1.2 },
+      toolbox: TB.buildToolbox(groups, firstEnv), media: 'vendor/media/', trashcan: true, sounds: false,
+      zoom: { controls: true, wheel: true, startScale: 0.8, minScale: 0.5, maxScale: 1.6, scaleSpeed: 1.2 },
       theme: blocklyTheme(), grid: { spacing: 25, length: 3, colour: isDark() ? '#2b374f' : '#e3e9f1', snap: true }, renderer: 'geras'
     });
-    TB.installCategories(ws);
     var cv = $('#cv'), ctx = cv.getContext('2d');
     var layer = document.createElement('canvas'); layer.width = layer.height = TB.SIZE;
     cur = {
       lv: lv, free: free, prep: prep, ws: ws, cv: cv, ctx: ctx, layer: layer, lctx: layer.getContext('2d'),
       map: prep ? prep.map : { zoom: 1, cx: 0, cy: 0 },
-      t: { x: 0, y: 0, a: 0 }, playing: false, raf: 0, speed: 3, grid: false
+      t: { x: 0, y: 0, a: 0 }, playing: false, raf: 0, speed: 3, grid: true, solved: false, groups: groups, toolSig: '', ghosts: {}
     };
     cur.lctx.lineCap = 'round';
     cur.onResize = fitLayout;
@@ -282,9 +297,11 @@
       TB.loadXml(ws, startXml());
     }
     ensureVariables();
+    refreshToolbox(true);
     ws.addChangeListener(function (ev) {
       if (ev.isUiEvent) return;
       refreshCounter();
+      if (!ws.isDragging || !ws.isDragging()) refreshToolbox(false);
       if (lv) {
         try { profile().ws[lv.id] = JSON.stringify(Blockly.serialization.workspaces.save(ws)); save(); } catch (e) { /* ignoré */ }
       }
@@ -303,14 +320,14 @@
     $('#codebtn').onclick = showCode;
     $('#reset').onclick = function () {
       if (!confirm('Supprimer tous tes blocs et recommencer ce niveau ?')) return;
-      stopPlay(true); ws.clear(); TB.loadXml(ws, startXml()); ensureVariables(); clearDrawing(); setMsg('', ''); placeStart();
+      cur.solved = false; stopPlay(true); ws.clear(); TB.loadXml(ws, startXml()); ensureVariables(); clearDrawing(); setMsg('', ''); refreshToolbox(true); placeStart();
       if (lv) { delete profile().ws[lv.id]; save(); }
     };
     if (lv) {
       $('#hint').onclick = function () { setMsg('💡 ' + lv.hint, 'hint'); };
       $('#sol').onclick = function () {
         if (!confirm('Afficher la solution ? (Cela remplace tes blocs actuels.)')) return;
-        stopPlay(true); ws.clear(); TB.loadXml(ws, prep.xml); ensureVariables(); clearDrawing(); placeStart();
+        stopPlay(true); ws.clear(); TB.loadXml(ws, prep.xml); ensureVariables(); clearDrawing(); refreshToolbox(true); placeStart();
         setMsg('Voici une solution possible. Clique sur Exécuter pour la voir dessiner !', 'hint');
       };
     } else {
@@ -355,16 +372,48 @@
     if (cur.ws) cur.ws.highlightBlock(null);
     draw();
   }
+  /* Modèle : couleur légère tant que le dessin n'est pas réussi, plus foncée ensuite. */
+  function ghostImage() {
+    var key = (isDark() ? 'd' : 'l') + (cur.solved ? 's' : 'u');
+    if (cur.ghosts[key]) return cur.ghosts[key];
+    var mask = cur.prep.mask;
+    if (cur.lv.colors) { cur.ghosts[key] = mask; return mask; }
+    var c = document.createElement('canvas'); c.width = c.height = TB.SIZE;
+    var g = c.getContext('2d');
+    g.drawImage(mask, 0, 0);
+    g.globalCompositeOperation = 'source-in';
+    g.fillStyle = isDark() ? (cur.solved ? '#9cc2f5' : '#4a5a78') : (cur.solved ? '#2d4a82' : '#b4c3dc');
+    g.fillRect(0, 0, TB.SIZE, TB.SIZE);
+    cur.ghosts[key] = c;
+    return c;
+  }
+
+  /* Grille : un carreau = 100 unités du dessin, alignée sur le modèle (la tortue part d'un nœud de la grille). */
+  function drawGrid(c) {
+    var S = TB.SIZE, map = cur.map, z = map.zoom;
+    var k0 = Math.floor((map.cx - S / 2 / z) / 100), k1 = Math.ceil((map.cx + S / 2 / z) / 100);
+    var j0 = Math.floor((map.cy - S / 2 / z) / 100), j1 = Math.ceil((map.cy + S / 2 / z) / 100);
+    var normal = isDark() ? '#26324b' : '#e3e9f3', axis = isDark() ? '#3a4a6c' : '#c9d4e6';
+    c.lineWidth = 1;
+    for (var k = k0; k <= k1; k++) {
+      var x = Math.round(TB.px(map, k * 100, 0)[0]) + 0.5;
+      c.strokeStyle = k === 0 ? axis : normal; c.beginPath(); c.moveTo(x, 0); c.lineTo(x, S); c.stroke();
+    }
+    for (var j = j0; j <= j1; j++) {
+      var y = Math.round(TB.px(map, 0, j * 100)[1]) + 0.5;
+      c.strokeStyle = j === 0 ? axis : normal; c.beginPath(); c.moveTo(0, y); c.lineTo(S, y); c.stroke();
+    }
+  }
+
   function draw() {
     if (!cur) return;
     var c = cur.ctx, S = TB.SIZE;
     c.fillStyle = isDark() ? '#141b2a' : '#fff'; c.fillRect(0, 0, S, S);
-    if (cur.grid) {
-      c.strokeStyle = isDark() ? '#243049' : '#e6ecf4'; c.lineWidth = 1; c.beginPath();
-      for (var i = 0; i <= S; i += 50) { c.moveTo(i, 0); c.lineTo(i, S); c.moveTo(0, i); c.lineTo(S, i); }
-      c.stroke();
+    if (cur.grid) drawGrid(c);
+    if (cur.prep) {
+      c.globalAlpha = cur.lv.colors ? (cur.solved ? 0.95 : 0.4) : 1;
+      c.drawImage(ghostImage(), 0, 0); c.globalAlpha = 1;
     }
-    if (cur.prep) { c.globalAlpha = cur.lv.colors ? 0.5 : 0.6; c.drawImage(cur.prep.ghost, 0, 0); c.globalAlpha = 1; }
     c.drawImage(cur.layer, 0, 0);
     var p = TB.px(cur.map, cur.t.x, cur.t.y);
     c.save(); c.translate(p[0], p[1]); c.rotate(cur.t.a * Math.PI / 180);
@@ -380,6 +429,7 @@
   function run() {
     if (!cur) return;
     stopPlay(true);
+    cur.solved = false;
     clearDrawing();
     setMsg('', '');
     var code;
@@ -473,6 +523,7 @@
       else why = 'Presque ! Il manque encore une partie du modèle gris.';
       setMsg(why + ' Utilise 💡 Indice si tu as besoin d’aide.' + orphanNote, 'warn'); beep([220]); return;
     }
+    cur.solved = true; draw();
     var used = {};
     ws.getAllBlocks(false).forEach(function (b) { used[b.type] = true; });
     var missing = (lv.require || []).filter(function (t) { return !used[t]; });
@@ -551,7 +602,7 @@
             if (lv.opts[kind].indexOf(v) < 0) { ok = false; status.push('valeur ' + v + ' absente de la liste ' + kind); }
           }
         });
-        if (lv.opts.len.length > 6 || lv.opts.ang.length > 6 || lv.opts.val.length > 6) status.push('liste longue');
+        if (lv.opts.ang.length > 6 || lv.opts.val.length > 6) status.push('liste longue');
         // test négatif : un trait en trop doit être refusé
         var bad = TB.execute('avancer(30);\n' + TB.generateCode(ws, false));
         var cmpBad = TB.compare(TB.segments(bad.cmds), prep.segs, prep.map, !!lv.colors);

@@ -13,13 +13,14 @@
 
   /* Listes proposées par défaut (mode création libre). */
   TB.FREE_OPTS = {
-    len: [10, 20, 30, 50, 80, 100, 150, 200],
+    len: [100, 200, 400],
     ang: [30, 45, 60, 72, 90, 120, 135, 144, 150, 180],
     cnt: [2, 3, 4, 5, 6, 7, 8, 9, 10],
-    val: [1, 2, 3, 5, 10, 20, 50, 100, 360],
+    val: [5, 10, 50, 100, 200, 360],
     col: ALL_COLORS.slice(),
     vars: ['taille', 'angle', 'cotes', 'a', 'b']
   };
+  TB.LENGTHS = [100, 200, 400];
   TB.opts = TB.FREE_OPTS;
   TB.useLevel = function (lv) { TB.opts = lv ? lv.opts : TB.FREE_OPTS; };
 
@@ -137,77 +138,42 @@
     return o;
   }
 
-  TB.buildToolbox = function (groups) {
+  /* Boîte à outils plate : tous les blocs du niveau sont visibles en permanence, sans sous-menu.
+     env = { vars: [noms des variables], procs: [[nom, [paramètres]]] } (mis à jour quand l'enfant crée une fonction). */
+  TB.buildToolbox = function (groups, env) {
+    env = env || {};
     var has = function (g) { return groups.indexOf(g) >= 0; };
-    var cats = [], c;
+    var c = [], G6 = 4;
+    function add(type, inputs, extra) { var o = blk(type, inputs); o.gap = G6; if (extra) for (var k in extra) o[k] = extra[k]; c.push(o); }
     if (has('fwd') || has('move')) {
-      c = [blk('fr_forward', { N: num('len') })];
-      if (has('move')) { c.push(blk('fr_right', { N: num('ang') })); c.push(blk('fr_left', { N: num('ang') })); }
-      cats.push({ kind: 'category', name: 'Mouvements', colour: '210', contents: c });
+      add('fr_forward', { N: num('len') });
+      if (has('move')) { add('fr_right', { N: num('ang') }); add('fr_left', { N: num('ang') }); }
     }
     if (has('dir')) {
-      cats.push({
-        kind: 'category', name: 'Directions', colour: '160', contents: [
-          blk('fr_up', { N: num('len') }), blk('fr_down', { N: num('len') }),
-          blk('fr_west', { N: num('len') }), blk('fr_east', { N: num('len') })
-        ]
+      add('fr_up', { N: num('len') }); add('fr_down', { N: num('len') });
+      add('fr_west', { N: num('len') }); add('fr_east', { N: num('len') });
+    }
+    if (has('color')) add('fr_color');
+    if (has('pen')) { add('fr_penup'); add('fr_pendown'); }
+    if (has('loop')) add('controls_repeat_ext', { TIMES: num('cnt') });
+    if (has('var')) {
+      var vars = env.vars || [];
+      if (vars.length) {
+        add('variables_set', { VALUE: num('val') }, { fields: { VAR: { name: vars[0] } } });
+        add('math_change', { DELTA: num('val') }, { fields: { VAR: { name: vars[0] } } });
+        vars.slice(0, 4).forEach(function (v) { add('variables_get', null, { fields: { VAR: { name: v } } }); });
+      }
+    }
+    if (has('math')) add('math_arithmetic', { A: num('val'), B: num('val') });
+    if (has('func')) {
+      add('procedures_defnoreturn');
+      (env.procs || []).forEach(function (p) {
+        var inputs = {};
+        p[1].forEach(function (_, i) { inputs['ARG' + i] = num('val'); });
+        add('procedures_callnoreturn', inputs, { extraState: { name: p[0], params: p[1] } });
       });
     }
-    if (has('color') || has('pen')) {
-      c = [];
-      if (has('color')) c.push(blk('fr_color'));
-      if (has('pen')) { c.push(blk('fr_penup')); c.push(blk('fr_pendown')); }
-      cats.push({ kind: 'category', name: 'Crayon', colour: '20', contents: c });
-    }
-    if (has('loop')) {
-      cats.push({ kind: 'category', name: 'Boucles', colour: '120', contents: [blk('controls_repeat_ext', { TIMES: num('cnt') })] });
-    }
-    if (has('var')) cats.push({ kind: 'category', name: 'Variables', colour: '330', custom: 'VARIABLE' });
-    if (has('math')) {
-      cats.push({
-        kind: 'category', name: 'Calculs', colour: '230', contents: [
-          blk('fr_num_val'),
-          blk('math_arithmetic', { A: num('val'), B: num('val') })
-        ]
-      });
-    }
-    if (has('func')) cats.push({ kind: 'category', name: 'Fonctions', colour: '290', custom: 'PROCEDURE' });
-    if (cats.length === 1 && !cats[0].custom) return { kind: 'flyoutToolbox', contents: cats[0].contents };
-    return { kind: 'categoryToolbox', contents: cats };
-  };
-
-  /* Remplace les nombres saisis par des listes dans les menus Variables et Fonctions, et
-     supprime le bouton « Créer une variable » (les variables sont fournies par le niveau). */
-  function mk(tag, type) { var e = Blockly.utils.xml.createElement(tag); if (type) e.setAttribute('type', type); return e; }
-  function valueShadow(name, type) {
-    var v = mk('value'); v.setAttribute('name', name); v.appendChild(mk('shadow', type)); return v;
-  }
-  TB.installCategories = function (ws) {
-    ws.registerToolboxCategoryCallback('VARIABLE', function (w) {
-      var list = Blockly.Variables.flyoutCategory(w).filter(function (el) { return el.tagName.toLowerCase() !== 'button'; });
-      list.forEach(function (el) {
-        var type = el.getAttribute('type');
-        if (type === 'math_change' || type === 'variables_set') {
-          var name = type === 'math_change' ? 'DELTA' : 'VALUE';
-          Array.prototype.slice.call(el.querySelectorAll('value')).forEach(function (v) { el.removeChild(v); });
-          el.appendChild(valueShadow(name, 'fr_num_val'));
-        }
-      });
-      return list;
-    });
-    ws.registerToolboxCategoryCallback('PROCEDURE', function (w) {
-      var hidden = ['procedures_defreturn', 'procedures_ifreturn', 'procedures_callreturn'];
-      var list = Blockly.Procedures.flyoutCategory(w).filter(function (el) {
-        return !(el.getAttribute && hidden.indexOf(el.getAttribute('type')) >= 0);
-      });
-      list.forEach(function (el) {
-        if (el.getAttribute && el.getAttribute('type') === 'procedures_callnoreturn') {
-          var n = el.querySelectorAll('mutation > arg').length;
-          for (var i = 0; i < n; i++) el.appendChild(valueShadow('ARG' + i, 'fr_num_val'));
-        }
-      });
-      return list;
-    });
+    return { kind: 'flyoutToolbox', contents: c };
   };
 
   /* ---------- DSL des solutions -> XML Blockly ---------- */
@@ -306,10 +272,7 @@
   function numSort(a) { return a.slice().sort(function (x, y) { return x - y; }); }
   function pad(vals, pool, n) {
     var s = uniq(vals);
-    var cands = pool.filter(function (p) { return s.indexOf(p) < 0; });
-    function dist(x) { return s.length ? Math.min.apply(null, s.map(function (v) { return Math.abs(v - x); })) : 0; }
-    cands.sort(function (a, b) { return dist(a) - dist(b); });
-    while (s.length < n && cands.length) s.push(cands.shift());
+    for (var i = 0; i < pool.length && s.length < n; i++) if (s.indexOf(pool[i]) < 0) s.push(pool[i]);
     return numSort(s);
   }
 
@@ -339,9 +302,9 @@
         }
       });
     })(dsl);
-    o.len = pad(o.len, [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 120, 150, 180, 200], 4);
-    o.ang = pad(o.ang, [30, 45, 60, 72, 90, 120, 135, 144, 150, 180], 4);
-    o.val = pad(o.val, [1, 2, 3, 4, 5, 10, 15, 20, 50, 100, 360, 720], 4);
+    o.len = TB.LENGTHS.slice();
+    o.ang = pad(o.ang, [90, 60, 120, 45, 30, 72, 135, 144, 150, 180], 4);
+    o.val = pad(o.val, [100, 200, 400, 50, 20, 10, 5, 360, 720, 2, 3, 1], 4);
     o.cnt = [2, 3, 4, 5, 6, 7, 8, 9, 10];
     var cols = uniq(o.col);
     ALL_COLORS.forEach(function (c) { if (cols.length < 4 && cols.indexOf(c) < 0) cols.push(c); });
