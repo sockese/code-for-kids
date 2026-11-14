@@ -326,8 +326,8 @@
       (prev ? '<a class="btn small" href="#/niveau/' + prev.id + '">◀</a>' : '') +
       (next ? '<a class="btn small" href="#/niveau/' + next.id + '">▶</a>' : '') + '</div>' +
       '<div class="instruction">' + (lv ? esc(lv.text) : 'Dessine ce que tu veux ! Tous les blocs sont disponibles.') + '</div>' +
-      '<div class="level-body" id="lbody"><div class="ws-wrap"><div id="blockly"></div><div class="counter" id="counter"></div></div>' +
-      '<div class="side" id="side"><div class="canvas-wrap" id="cvw"><canvas id="cv" width="600" height="600"></canvas><div class="msg" id="msg"></div></div>' +
+      '<div class="level-body" id="lbody"><div class="ws-wrap"><div id="blockly"></div><div class="counter" id="counter"></div><div class="msg" id="msg"></div></div>' +
+      '<div class="side" id="side"><div class="canvas-wrap" id="cvw"><canvas id="cv" width="600" height="600"></canvas></div>' +
       '<div class="controls"><button class="btn go" id="run">▶ Exécuter</button><button class="btn stop" id="stop" disabled>⏹</button>' +
       '<label class="speed" title="Vitesse"><span>🐢</span><input type="range" id="speed" min="1" max="5" step="1" value="3"><span>🐇</span></label>' +
       '<label class="chk"><input type="checkbox" id="grid" checked> Grille</label></div>' +
@@ -338,9 +338,10 @@
 
     var groups = lv ? lv.tools : TOOL_ALL;
     var firstEnv = { vars: (lv ? lv.opts.vars : TB.FREE_OPTS.vars), procs: [] };
+    var tbDef = TB.buildToolbox(groups, firstEnv);
     var ws = Blockly.inject('blockly', {
-      toolbox: TB.buildToolbox(groups, firstEnv), media: 'vendor/media/', trashcan: true, sounds: false,
-      zoom: { controls: true, wheel: true, startScale: 0.8, minScale: 0.5, maxScale: 1.6, scaleSpeed: 1.2 },
+      toolbox: tbDef, media: 'vendor/media/', trashcan: true, sounds: false,
+      zoom: { controls: true, wheel: true, startScale: TB.pickScale(tbDef), minScale: 0.5, maxScale: 2, scaleSpeed: 1.2 },
       theme: blocklyTheme(), grid: { spacing: 25, length: 3, colour: isDark() ? '#2b374f' : '#e3e9f1', snap: true }, renderer: 'geras'
     });
     var cv = $('#cv'), ctx = cv.getContext('2d');

@@ -252,16 +252,17 @@
       '<section class="level"><div class="level-head"><a class="btn small" href="#/labyrinthes">← Niveaux</a><span class="badge">' + lv.label + '</span><h2>' + esc(lv.title) + '</h2><span class="spacer"></span>' +
       (prev ? '<a class="btn small" href="#/labyrinthe/' + prev.id + '">◀</a>' : '') + (next ? '<a class="btn small" href="#/labyrinthe/' + next.id + '">▶</a>' : '') + '</div>' +
       '<div class="instruction">' + esc(lv.text) + '</div>' +
-      '<div class="level-body" id="lbody"><div class="ws-wrap"><div id="blockly"></div><div class="counter" id="counter"></div></div>' +
-      '<div class="side" id="side"><div class="canvas-wrap" id="cvw"><canvas id="cv" width="600" height="600"></canvas><div class="msg" id="msg"></div></div>' +
+      '<div class="level-body" id="lbody"><div class="ws-wrap"><div id="blockly"></div><div class="counter" id="counter"></div><div class="msg" id="msg"></div></div>' +
+      '<div class="side" id="side"><div class="canvas-wrap" id="cvw"><canvas id="cv" width="600" height="600"></canvas></div>' +
       '<div class="controls"><button class="btn go" id="run">▶ Exécuter</button><button class="btn stop" id="stop" disabled>⏹</button>' +
       '<label class="speed" title="Vitesse"><span>🐢</span><input type="range" id="speed" min="1" max="5" step="1" value="3"><span>🐇</span></label></div>' +
       '<div class="tools2"><button class="btn small" id="hint">💡 Indice</button><button class="btn small" id="reset">↺ Recommencer</button>' +
       '<button class="btn small" id="sol" title="Pour les adultes">👀 Solution</button><button class="btn small" id="codebtn">{ } Code</button></div></div></div></section>';
 
+    var tbDef = TB.buildToolbox(lv.tools, { vars: [], procs: [] });
     var ws = Blockly.inject('blockly', {
-      toolbox: TB.buildToolbox(lv.tools, { vars: [], procs: [] }), media: 'vendor/media/', trashcan: true, sounds: false,
-      zoom: { controls: true, wheel: true, startScale: 0.8, minScale: 0.5, maxScale: 1.6, scaleSpeed: 1.2 },
+      toolbox: tbDef, media: 'vendor/media/', trashcan: true, sounds: false,
+      zoom: { controls: true, wheel: true, startScale: TB.pickScale(tbDef), minScale: 0.5, maxScale: 2, scaleSpeed: 1.2 },
       theme: App.blocklyTheme(), grid: { spacing: 25, length: 3, colour: App.isDark() ? '#2b374f' : '#e3e9f1', snap: true }, renderer: 'geras'
     });
     var cv = $('#cv');

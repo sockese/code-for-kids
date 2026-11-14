@@ -84,3 +84,8 @@ Bouton en haut à droite ; suit par défaut le réglage de l'ordinateur, choix m
 
 ## Atelier de logique (v8)
 Activité « Atelier de logique » : 5 chapitres, 19 niveaux (boîtes mystère, tables de vérité, construction avec la brique NON-ET, additionneurs, défis). Circuit dessiné en SVG avec fils animés, briques façon LEGO, interrupteurs et lampes ; montage par choix dans des listes (pas de glisser-déposer).
+
+## Retours d Auguste (v9)
+- Blocs plus grands (échelle adaptée au nombre de blocs) dans Tortue Blocs et Labyrinthes.
+- Bloc de couleur : pastille de couleur au lieu du nom.
+- Indices et messages affichés sur la zone de blocs, plus sur le dessin à réaliser.

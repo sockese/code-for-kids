@@ -195,3 +195,7 @@ table.t td, table.t th { border: 1px solid var(--line); padding: 4px 8px; text-a
 .act-prog .rankbar { width: 100%; margin-bottom: 6px; }
 .act-prog span { font-size: 14px; color: var(--muted); font-weight: 700; }
 .dialog .avatars { margin-top: 12px; }
+
+
+/* messages et indices : sur la zone de blocs, jamais sur le dessin à réaliser */
+.ws-wrap .msg { left: 8px; right: 8px; bottom: 46px; z-index: 50; max-height: 42%; overflow: auto; font-size: 16px; }

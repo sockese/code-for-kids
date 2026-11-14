@@ -67,11 +67,22 @@
   });
 
   /* ---------- Crayon ---------- */
+  var swatches = {};
+  function swatch(name) {
+    if (!swatches[name]) {
+      var hex = (TB.COLORS && TB.COLORS[name]) || '#999999';
+      swatches[name] = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+        '<svg xmlns="http://www.w3.org/2000/svg" width="34" height="34"><rect x="1.5" y="1.5" width="31" height="31" rx="8" fill="' + hex + '" stroke="#ffffff" stroke-width="3"/>' +
+        '<rect x="0.75" y="0.75" width="32.5" height="32.5" rx="8.5" fill="none" stroke="#00000055" stroke-width="1.5"/></svg>');
+    }
+    return swatches[name];
+  }
   Blockly.Blocks['fr_color'] = {
     init: function () {
       this.appendDummyInput().appendField('couleur du crayon').appendField(new Blockly.FieldDropdown(function () {
         var l = TB.opts.col && TB.opts.col.length ? TB.opts.col : ALL_COLORS;
-        return l.map(function (c) { return [c, c]; });
+        // on montre la couleur elle-même (pastille) plutôt que son nom
+        return l.map(function (c) { return [{ src: swatch(c), width: 34, height: 34, alt: c }, c]; });
       }), 'C');
       this.setPreviousStatement(true); this.setNextStatement(true); this.setColour(20);
       this.setTooltip('Change la couleur du trait.');
@@ -236,6 +247,12 @@
       });
     }
     return { kind: 'flyoutToolbox', contents: c };
+  };
+
+  /* Échelle des blocs : grands quand il y en a peu, un peu plus petits quand la liste est longue. */
+  TB.pickScale = function (def) {
+    var n = def && def.contents ? def.contents.length : 8;
+    return n <= 6 ? 1.2 : (n <= 9 ? 1.1 : (n <= 12 ? 1.0 : 0.9));
   };
 
   /* ---------- DSL des solutions -> XML Blockly ---------- */
