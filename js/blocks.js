@@ -9,7 +9,7 @@
   var ORDER_NONE = G.ORDER_NONE !== undefined ? G.ORDER_NONE : 99;
   var ORDER_ATOMIC = G.ORDER_ATOMIC !== undefined ? G.ORDER_ATOMIC : 0;
 
-  var ALL_COLORS = ['rouge', 'orange', 'jaune', 'vert', 'bleu', 'violet', 'rose', 'noir'];
+  var ALL_COLORS = ['rouge', 'orange', 'jaune', 'vert', 'turquoise', 'bleu', 'violet', 'rose', 'marron', 'gris', 'noir'];
 
   /* Listes proposées par défaut (mode création libre). */
   TB.FREE_OPTS = {

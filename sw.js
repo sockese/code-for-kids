@@ -1,7 +1,7 @@
 /* Tortue Blocs — service worker : fonctionnement hors ligne.
    Stratégie : on sert le cache tout de suite, et on le met à jour en arrière-plan
    (les mises à jour de l'appli arrivent donc au lancement suivant). */
-var CACHE = 'tortue-blocs-v6';
+var CACHE = 'tortue-blocs-v7';
 var FILES = [
   './', 'index.html', 'manifest.webmanifest', 'css/style.css', 'css/agence.css',
   'js/turtle.js', 'js/blocks.js', 'js/levels.js', 'js/app.js', 'js/labyrinthe.js', 'js/agence.js', 'js/main.js',
@@ -13,7 +13,7 @@ var FILES = [
 ];
 
 self.addEventListener('install', function (e) {
-  e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(FILES); }).then(function () { return self.skipWaiting(); }));
+  e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(FILES.map(function (u) { return new Request(u, { cache: 'reload' }); })); }).then(function () { return self.skipWaiting(); }));
 });
 
 self.addEventListener('activate', function (e) {

@@ -77,3 +77,7 @@ Bouton en haut à droite ; suit par défaut le réglage de l'ordinateur, choix m
 - **Modèle en couleur légère**, qui devient plus foncé quand le dessin est réussi.
 - **Tous les blocs visibles** à gauche, sans sous-menu (liste unique) ; les fonctions créées par l'enfant s'ajoutent automatiquement à la liste.
 - **Série D** refaite : d'abord des figures répétées en ligne (tour, rangée, escalier, train, damier, triangles espacés), puis seulement des figures qui tournent.
+
+## Évolutions (v7)
+- Tortue : 11 couleurs, nouvelle série I « Couleurs et crayon » (13 niveaux : lever / baisser le crayon, plusieurs couleurs), et une couleur de trait différente d un niveau à l autre.
+- Agence Z : chaque mission affiche en haut le nombre d étapes de la réponse et la progression de l enfant (cases qui se remplissent, vert / rouge après une vérification).

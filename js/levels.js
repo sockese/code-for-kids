@@ -24,6 +24,7 @@
     { id: 'H', name: 'Directions', desc: 'Va en haut, en bas, à droite, à gauche, sans avoir à tourner !' },
     { id: 'B', name: 'Paramètres', desc: 'Change les longueurs et les angles !' },
     { id: 'C', name: 'Boucles', desc: 'Utilise « répéter » pour dessiner plus vite !' },
+    { id: 'I', name: 'Couleurs et crayon', desc: 'Change de couleur, lève et baisse le crayon pour des dessins colorés !' },
     { id: 'D', name: 'Boucles imbriquées', desc: 'Mets une boucle dans une autre boucle !' },
     { id: 'E', name: 'Variables', desc: 'Garde des nombres en mémoire et fais-les évoluer !' },
     { id: 'F', name: 'Fonctions', desc: 'Crée tes propres blocs !' },
@@ -162,6 +163,62 @@
     sol: [rep(6, [fd(100), UP, fd(100), DOWN])] }, LOOP);
   lv({ id: 'C10', title: 'Le décagone', text: 'Dessine un décagone (10 côtés égaux) : presque un cercle !',
     hint: '360 ÷ 10 = 36.', sol: [rep(10, [fd(100), rt(36)])] }, LOOP);
+
+  /* ---------- I : Couleurs et crayon (lever / baisser le crayon, beaucoup de couleurs) ---------- */
+  var CP = { colors: true };
+  var CPL = { colors: true, limit: true, require: ['controls_repeat_ext'] };
+  lv({ id: 'I1', title: 'Deux couleurs', tools: ['move', 'color'],
+    text: 'Trace un trait rouge, tourne, puis trace un trait bleu.',
+    hint: 'Le bloc « couleur du crayon » se met avant le trait à colorier.',
+    sol: [col('rouge'), fd(200), rt(90), col('bleu'), fd(200)] }, CP);
+  lv({ id: 'I2', title: 'Escalier arc-en-ciel', tools: ['move', 'color'],
+    text: 'Un escalier avec une couleur différente pour chaque marche.',
+    hint: 'Rouge, orange, jaune, vert : une couleur avant chaque trait.',
+    sol: [col('rouge'), fd(100), rt(90), col('orange'), fd(100), lt(90), col('jaune'), fd(100), rt(90), col('vert'), fd(100)] }, CP);
+  lv({ id: 'I3', title: 'Carré à quatre couleurs', tools: ['move', 'color'],
+    text: 'Dessine un carré dont chaque côté a sa couleur.',
+    hint: 'Violet, rose, turquoise, marron : change de couleur avant chaque côté.',
+    sol: [col('violet'), fd(200), rt(90), col('rose'), fd(200), rt(90), col('turquoise'), fd(200), rt(90), col('marron'), fd(200)] }, CP);
+  lv({ id: 'I4', title: 'Tirets turquoise', tools: ['move', 'color', 'pen', 'loop'],
+    text: 'Trace 4 tirets turquoise séparés par des trous.',
+    hint: 'Choisis la couleur avant la boucle. Dans la boucle : avancer, lever le crayon, avancer, baisser le crayon.',
+    sol: [col('turquoise'), rep(4, [fd(100), UP, fd(100), DOWN])] }, CPL);
+  lv({ id: 'I5', title: 'Rouge et bleu', tools: ['move', 'color', 'pen', 'loop'],
+    text: 'Alterne un tiret rouge et un tiret bleu, avec un trou après chacun.',
+    hint: 'Dans la boucle : couleur rouge, tiret, trou ; couleur bleue, tiret, trou.',
+    sol: [rep(2, [col('rouge'), fd(100), UP, fd(100), DOWN, col('bleu'), fd(100), UP, fd(100), DOWN])] }, CPL);
+  lv({ id: 'I6', title: 'Deux carrés séparés', tools: ['move', 'color', 'pen', 'loop'],
+    text: 'Un carré rouge, puis un carré bleu un peu plus loin, sans trait entre les deux.',
+    hint: 'Après le carré rouge : tourner à droite, lever le crayon, avancer de 200, baisser le crayon, tourner à gauche.',
+    sol: [col('rouge'), rep(4, [fd(100), rt(90)]), UP, rt(90), fd(200), lt(90), DOWN, col('bleu'), rep(4, [fd(100), rt(90)])] }, CPL);
+  lv({ id: 'I7', title: 'Trois triangles colorés', tools: ['move', 'color', 'pen', 'loop'],
+    text: 'Un triangle vert, un orange et un violet, séparés les uns des autres.',
+    hint: 'Commence par tourner à droite de 90°. Chaque triangle : répéter 3 fois [ avancer 100, tourner à gauche de 120° ]. Entre deux : lever le crayon, avancer 200, baisser le crayon.',
+    sol: [rt(90), col('vert'), rep(3, [fd(100), lt(120)]), UP, fd(200), DOWN, col('orange'), rep(3, [fd(100), lt(120)]), UP, fd(200), DOWN, col('violet'), rep(3, [fd(100), lt(120)])] }, CPL);
+  lv({ id: 'I8', title: 'Le soleil', tools: ['move', 'color', 'pen', 'loop'],
+    text: 'Dessine 8 rayons jaunes qui partent du même point, sans trait pour revenir au centre.',
+    hint: 'Dans la boucle : avancer 100 (le rayon), lever le crayon, demi-tour, avancer 100 (retour au centre), baisser le crayon, demi-tour, puis tourner de 45°.',
+    sol: [col('jaune'), rep(8, [fd(100), UP, rt(180), fd(100), DOWN, rt(180), rt(45)])] }, CPL);
+  lv({ id: 'I9', title: 'Fleur bicolore', tools: ['move', 'color', 'loop'],
+    text: 'Huit carrés qui tournent, un rouge, un turquoise, un rouge, un turquoise…',
+    hint: 'Boucle de 4 : [ couleur rouge, carré, tourner de 45°, couleur turquoise, carré, tourner de 45° ]. Un carré = répéter 4 fois [ avancer, tourner de 90° ].',
+    sol: [rep(4, [col('rouge'), rep(4, [fd(100), rt(90)]), rt(45), col('turquoise'), rep(4, [fd(100), rt(90)]), rt(45)])] }, CPL);
+  lv({ id: 'I10', title: 'La maison colorée', tools: ['move', 'color', 'pen', 'loop'],
+    text: 'Des murs orange et un toit rouge. Pas de trait en trop : lève le crayon pour monter !',
+    hint: 'Murs : couleur orange, carré de 200. Puis lever le crayon, avancer de 200, baisser le crayon, tourner à droite de 90°. Toit : couleur rouge, triangle (3 fois : avancer 200, tourner à gauche de 120°).',
+    sol: [col('orange'), rep(4, [fd(200), rt(90)]), UP, fd(200), DOWN, rt(90), col('rouge'), rep(3, [fd(200), lt(120)])] }, CPL);
+  lv({ id: 'I11', title: 'Rangée bicolore', tools: ['move', 'color', 'loop'],
+    text: 'Quatre carrés collés, en alternant le rouge et le bleu.',
+    hint: 'Boucle de 2 : [ couleur rouge, carré, glisser à droite, couleur bleue, carré, glisser à droite ]. « Glisser » = tourner à droite de 90°, avancer 100, tourner à gauche de 90°.',
+    sol: [rep(2, [col('rouge'), rep(4, [fd(100), rt(90)]), rt(90), fd(100), lt(90), col('bleu'), rep(4, [fd(100), rt(90)]), rt(90), fd(100), lt(90)])] }, CPL);
+  lv({ id: 'I12', title: 'Spirale arc-en-ciel', tools: ['move', 'color', 'loop', 'var'], require: VAR.concat(['math_change']),
+    text: 'Une spirale carrée dont les côtés sont tour à tour rouges et verts.',
+    hint: 'Mets « taille » à 100. Répéter 3 fois : [ rouge, avancer taille, droite 90°, ajouter 100 à taille, vert, avancer taille, droite 90°, ajouter 100 à taille ].',
+    sol: [set('taille', 100), rep(3, [col('rouge'), fd('taille'), rt(90), add('taille', 100), col('vert'), fd('taille'), rt(90), add('taille', 100)])] }, CP);
+  lv({ id: 'I13', title: 'La cible', tools: ['move', 'color', 'loop', 'var'], require: VAR.concat(['math_change']),
+    text: 'Quatre carrés emboîtés qui partent du même coin : violet, rose, violet, rose.',
+    hint: 'Mets « taille » à 100. Répéter 2 fois : [ violet, carré, ajouter 100, rose, carré, ajouter 100 ].',
+    sol: [set('taille', 100), rep(2, [col('violet'), rep(4, [fd('taille'), rt(90)]), add('taille', 100), col('rose'), rep(4, [fd('taille'), rt(90)]), add('taille', 100)])] }, CP);
 
   /* ---------- D : Boucles imbriquées (d'abord des figures qui se répètent en ligne) ---------- */
   lv({ id: 'D1', title: 'La tour de carrés', text: 'Empile 3 carrés les uns sur les autres.',

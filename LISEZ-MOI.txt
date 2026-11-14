@@ -8,7 +8,7 @@ Parcours : écran d'arrivée → choix du prénom + avatar (pas de mot de passe)
 La progression est sauvegardée dans le navigateur, par prénom. Points et rang communs aux 3 activités.
 
 ACTIVITÉS
-- 🐢 Tortue — Dessins : 75 niveaux en 8 séries (A à H) + mode création libre. Blocs Blockly en français.
+- 🐢 Tortue — Dessins : 88 niveaux en 9 séries (A à I, dont « Couleurs et crayon ») + mode création libre. Blocs Blockly en français.
 - 🧭 Tortue — Labyrinthes : 21 niveaux (avancer, tourner, répéter, jusqu à l arrivée, tant que, si / sinon, fraises, main gauche/droite, grands labyrinthes).
 - 🕵️ Agence Z : 36 missions en 6 séries (symboles, César, binaire, texte en binaire, morse/miroir/grille,
   opérations spéciales) + dossier secret (histoire), grades, insignes, et « Courrier » pour échanger des

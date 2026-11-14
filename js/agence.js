@@ -481,7 +481,7 @@
     $('#view').innerHTML =
       '<section class="level mission"><div class="level-head"><a class="btn small" href="#/agence">← Missions</a><span class="badge">' + m.id + (m.boss ? ' ★' : '') + '</span><h2>' + esc(m.title) + '</h2><span class="spacer"></span>' +
       (prev ? '<a class="btn small" href="#/agence/mission/' + prev.id + '">◀</a>' : '') + (next ? '<a class="btn small" href="#/agence/mission/' + next.id + '">▶</a>' : '') + '</div>' +
-      '<div class="instruction">' + (m.n === 1 ? '<b>' + esc(S.title) + ' — </b>' + esc(S.intro) + ' ' : '') + '🗣️ Centrale : ' + esc(m.brief) + '</div>' +
+      '<div class="instruction">' + (m.n === 1 ? '<b>' + esc(S.title) + ' — </b>' + esc(S.intro) + ' ' : '') + '🗣️ Centrale : ' + esc(m.brief) + '</div><div class="m-steps" id="steps"></div>' +
       '<div class="m-main"><div class="m-left"><div class="m-panel" id="mp"></div>' +
       '<div class="m-input" id="mi">' + (K.input === 'letters' ? keyboardHtml() : K.input === 'digits' ? digitsHtml() : K.input === 'symbols' ? symbolsHtml() : K.input === 'morse' ? morseHtml() : '') + '</div>' +
       '<div class="m-actions"><button class="btn go" id="check">' + (K.action || '✅ Vérifier') + '</button><button class="btn small" id="hint">💡 Indice</button>' +
@@ -505,8 +505,65 @@
     };
   }
 
+  /* ---------- étapes de la réponse : nombre typique et progression ---------- */
+  function typedS(unit) {
+    return function (inst, st) {
+      var n = inst.expected.length;
+      return { n: n, unit: unit, filled: function (i) { return i < st.typed.length; }, good: function (i) { return st.typed[i] === inst.expected[i]; } };
+    };
+  }
+  function popcount(n) { var c = 0; while (n) { c += n & 1; n >>= 1; } return c; }
+  var STEPS = {
+    symDec: typedS('lettres à décoder'), casDec: typedS('lettres à décoder'), casEnc: typedS('lettres à coder'),
+    letDec: typedS('lettres à retrouver'), morseDec: typedS('lettres à décoder'), morseListen: typedS('lettres à retrouver'),
+    polyDec: typedS('lettres à décoder'), textDec: typedS('lettres à décoder'), dbl: typedS('lettres à retrouver'),
+    freq: typedS('lettres à décoder'), binRead: typedS('chiffres à trouver'),
+    symEnc: function (inst, st) {
+      return { n: inst.expected.length, unit: 'dessins à choisir', filled: function (i) { return i < st.seq.length; }, good: function (i) { return st.seq[i] === inst.expected[i]; } };
+    },
+    morseEnc: function (inst, st) {
+      return { n: inst.expected.length, unit: 'lettres en morse', filled: function (i) { return !!st.groups[i]; }, good: function (i) { return st.groups[i] === inst.expected[i]; } };
+    },
+    binBuild: function (inst, st) {
+      var cnt = st.bits.reduce(function (a, b) { return a + b; }, 0);
+      return { n: popcount(inst.target), unit: 'cartes à retourner', filled: function (i) { return i < cnt; } };
+    },
+    letEnc: function (inst, st) {
+      return { n: inst.letters.length, unit: 'lettres à écrire en binaire', filled: function (i) { return st.rows[i] !== '00000'; }, good: function (i) { return st.rows[i] === letterBits(inst.letters[i]); } };
+    },
+    casFind: function (inst, st) {
+      return { n: inst.k, unit: 'pas de roue à faire', filled: function (i) { return i < st.w; } };
+    },
+    parFind: function (inst, st) {
+      return { n: inst.bad.length, unit: 'octets abîmés à repérer', filled: function (i) { return i < st.sel.length; }, good: function (i) { return inst.bad.indexOf(st.sel[i]) >= 0; } };
+    },
+    parAdd: function (inst, st) {
+      var need = inst.words.filter(function (w) { return !parityOk(w); }).length, cnt = st.last.reduce(function (a, b) { return a + b; }, 0);
+      return { n: need, unit: 'bits de parité à ajouter', filled: function (i) { return i < cnt; } };
+    }
+  };
+  function stepInfo(kind, inst, st) {
+    var s = STEPS[kind](inst, st), done = 0;
+    for (var i = 0; i < s.n; i++) if (s.filled(i)) done++;
+    s.done = done;
+    return s;
+  }
+  function renderSteps() {
+    var el = $('#steps'); if (!el || !cur) return;
+    var s = stepInfo(cur.m.kind, cur.inst, cur.st), chips = '';
+    for (var i = 0; i < s.n; i++) {
+      var cls = s.filled(i) ? 'on' : '';
+      if (cur.checked && s.filled(i) && s.good) cls = s.good(i) ? 'ok' : 'ko';
+      chips += '<i class="chip ' + cls + '"></i>';
+    }
+    el.innerHTML = '<span class="ms-title">🪜 Réponse en <b>' + s.n + '</b> étape' + (s.n > 1 ? 's' : '') + ' <em>(' + s.unit + ')</em></span>' +
+      '<span class="ms-bar">' + chips + '</span><span class="ms-count">' + s.done + ' / ' + s.n + '</span>' +
+      (cur.checked ? '<span class="ms-leg">🟩 juste · 🟥 à corriger</span>' : '');
+  }
+
   function render() {
     var mp = $('#mp'); if (!mp || !cur) return;
+    renderSteps();
     mp.innerHTML = cur.K.panel(cur.inst, cur.st) + '<div class="msg" id="msg"></div>';
     var mr = $('#mr');
     if (mr) {
@@ -519,6 +576,7 @@
   function toast(t, kind) { var m = $('#msg'); if (!m) return; m.className = 'msg' + (t ? ' show ' + kind : ''); m.innerHTML = t; }
 
   function key(k) {
+    cur.checked = false;
     var st = cur.st, K = cur.K, max = K.input === 'digits' ? 2 : (cur.inst.expected || '').length;
     if (K.input !== 'letters' && K.input !== 'digits') return;
     if (k === 'BACK') st.typed = st.typed.slice(0, -1);
@@ -531,6 +589,7 @@
     if (!cur) return;
     var t = e.target.closest('button'); if (!t) return;
     var st = cur.st, inst = cur.inst, a = t.dataset.act;
+    if (t.dataset.k || t.dataset.s || t.dataset.m || a) cur.checked = false;
     if (t.dataset.k) { key(t.dataset.k); return; }
     if (t.dataset.s) { if (t.dataset.s === 'BACK') st.seq.pop(); else st.seq.push(t.dataset.s); render(); return; }
     if (t.dataset.m) {
@@ -555,7 +614,7 @@
   function check() {
     if (!cur) return;
     var res = cur.K.check(cur.inst, cur.st);
-    if (!res.ok) { toast('❌ Pas encore ! ' + res.detail, 'warn'); App.beep([220]); return; }
+    if (!res.ok) { cur.checked = true; renderSteps(); toast('❌ Pas encore ! ' + res.detail, 'warn'); App.beep([220]); return; }
     succeed();
   }
 
@@ -720,6 +779,8 @@
           if (K.check(inst, st).ok) { ok = false; why.push('réponse vide acceptée'); break; }
           K.solve(inst, st);
           if (!K.check(inst, st).ok) { ok = false; why.push('solution refusée'); break; }
+          var s0 = stepInfo(m.kind, inst, K.blank(inst)), s1 = stepInfo(m.kind, inst, st);
+          if (!(s0.n > 0) || s0.done !== 0 || s1.done !== s1.n) { ok = false; why.push('étapes ' + s0.n + ' / ' + s0.done + ' / ' + s1.done); break; }
           K.panel(inst, st);
           if (m.kind === 'symEnc' || m.kind === 'letEnc') { /* une réponse fausse doit être refusée */
             var bad = K.blank(inst); if (m.kind === 'symEnc') bad.seq = ['Z']; else bad.rows = inst.letters.map(function () { return '11111'; });

@@ -82,3 +82,11 @@
 .msgctl select { font: inherit; padding: 6px 10px; border-radius: 10px; border: 2px solid var(--line); background: var(--surface); color: var(--ink); } .seg { display: flex; gap: 6px; }
 .msgpage textarea { width: 100%; font: inherit; padding: 10px; border-radius: 12px; border: 2px solid var(--line); background: var(--surface); color: var(--ink); resize: vertical; }
 .msgpage h3 { margin: 12px 0 6px; } .msgpage .row { display: flex; gap: 10px; align-items: center; margin-top: 8px; }
+
+/* étapes de la réponse */
+.m-steps { flex: none; display: flex; align-items: center; gap: 4px 12px; flex-wrap: wrap; padding: 4px 10px; background: var(--surface); border: 2px solid var(--line); border-radius: 12px; font-size: 15px; }
+.ms-title em { font-style: normal; color: var(--muted); }
+.ms-bar { display: flex; gap: 3px; flex-wrap: wrap; flex: 1; min-width: 60px; }
+.chip { display: inline-block; width: 16px; height: 16px; border-radius: 5px; border: 2px solid var(--line); background: var(--bg); transition: background .15s; }
+.chip.on { background: var(--blue); border-color: var(--blue); } .chip.ok { background: var(--green); border-color: var(--green); } .chip.ko { background: var(--red); border-color: var(--red); }
+.ms-count { font-weight: 800; } .ms-leg { color: var(--muted); font-size: 13px; }

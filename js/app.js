@@ -186,6 +186,14 @@
     };
   }
 
+  /* Couleur du trait pour les niveaux où la couleur n'est pas demandée : elle change d'un niveau à l'autre. */
+  var INKS = ['#1e88e5', '#e53935', '#43a047', '#fb8c00', '#8e24aa', '#00bfa5', '#ec407a', '#ff7043'];
+  function levelInk(lv) {
+    if (!lv) return TB.COLORS.bleu;
+    var c = INKS[lv.index % INKS.length];
+    return c;
+  }
+
   /* ---------- liste des niveaux (avec vignettes) ---------- */
   function drawThumb(c) {
     var lv = TB.LEVEL_BY_ID[c.dataset.id];
@@ -193,7 +201,7 @@
     var big = document.createElement('canvas'); big.width = big.height = TB.SIZE;
     var g = big.getContext('2d');
     TB.drawSegments(g, prep.segs, prep.map, 20, lv.colors ? 'color' : 'black');
-    if (!lv.colors) { g.globalCompositeOperation = 'source-in'; g.fillStyle = isDark() ? '#7fbcf7' : '#2f6fb3'; g.fillRect(0, 0, TB.SIZE, TB.SIZE); }
+    if (!lv.colors) { g.globalCompositeOperation = 'source-in'; g.fillStyle = levelInk(lv); g.fillRect(0, 0, TB.SIZE, TB.SIZE); }
     var t = c.getContext('2d');
     t.clearRect(0, 0, c.width, c.height);
     t.drawImage(big, 0, 0, c.width, c.height);
@@ -540,7 +548,7 @@
       if (c.pen) {
         var p0 = TB.px(map, c.x0 + (c.x1 - c.x0) * from, c.y0 + (c.y1 - c.y0) * from);
         var p1 = TB.px(map, c.x0 + (c.x1 - c.x0) * to, c.y0 + (c.y1 - c.y0) * to);
-        cur.lctx.strokeStyle = (isDark() && c.col === 'noir') ? '#e8edf6' : (TB.COLORS[c.col] || '#000'); cur.lctx.lineWidth = 5;
+        cur.lctx.strokeStyle = (cur.lv && !cur.lv.colors) ? levelInk(cur.lv) : ((isDark() && c.col === 'noir') ? '#e8edf6' : (TB.COLORS[c.col] || '#000')); cur.lctx.lineWidth = 5;
         cur.lctx.beginPath(); cur.lctx.moveTo(p0[0], p0[1]); cur.lctx.lineTo(p1[0], p1[1]); cur.lctx.stroke();
       }
       cur.t.x = c.x0 + (c.x1 - c.x0) * to; cur.t.y = c.y0 + (c.y1 - c.y0) * to;

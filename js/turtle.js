@@ -7,7 +7,8 @@
   TB.DEFAULT_COLOR = 'bleu';
   TB.COLORS = {
     rouge: '#e53935', orange: '#fb8c00', jaune: '#fdd835', vert: '#43a047',
-    bleu: '#1e88e5', violet: '#8e24aa', rose: '#ec407a', noir: '#212121'
+    bleu: '#1e88e5', violet: '#8e24aa', rose: '#ec407a', noir: '#212121',
+    turquoise: '#00bfa5', marron: '#795548', gris: '#9e9e9e'
   };
 
   var MAX_CMDS = 40000;
