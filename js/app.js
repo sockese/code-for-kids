@@ -82,6 +82,7 @@
     p.done = p.done || {}; p.ws = p.ws || {}; p.avatar = p.avatar || AVATARS[0];
     p.laby = p.laby || {}; p.laby.done = p.laby.done || {}; p.laby.ws = p.laby.ws || {};
     p.agence = p.agence || {}; p.agence.done = p.agence.done || {};
+    p.logique = p.logique || {}; p.logique.done = p.logique.done || {};
   }
   Object.keys(data.profiles).forEach(function (n) { ensureProfile(data.profiles[n]); });
 
@@ -93,6 +94,7 @@
   var NAVS = {
     tortue: [['#/liste', '▶ Niveaux', 'liste'], ['#/libre', '✏️ Création libre', 'libre']],
     laby: [['#/labyrinthes', '▶ Niveaux', 'laby']],
+    logique: [['#/logique', '🔌 Niveaux', 'liste']],
     agence: [['#/agence', '🕵️ Missions', 'missions'], ['#/agence/message', '✉️ Courrier', 'message'], ['#/agence/dossier', '📁 Dossier', 'dossier']]
   };
   function renderHeader(route, activity) {
@@ -174,7 +176,7 @@
       return '<a class="activity" href="' + a.href + '"><div class="act-icon">' + a.icon + '</div><h2>' + a.title + '</h2><p>' + a.desc + '</p>' +
         '<div class="act-prog"><div class="rankbar"><i style="width:' + pct + '%"></i></div><span>' + pr.done + ' / ' + pr.total + ' · ' + pr.points + ' pts</span></div></a>';
     }).join('');
-    $('#view').innerHTML = '<div class="hub"><h1>Bonjour ' + p.avatar + ' ' + esc(data.current) + ' !</h1><p>Choisis une activité :</p>' +
+    $('#view').innerHTML = '<div class="hub"><h1>Bonjour ' + esc(data.current) + ' ' + p.avatar + ' !</h1><p>Choisis une activité :</p>' +
       '<div class="activities">' + cards + '</div><p><button class="btn small" id="avbtn">Changer d’avatar</button></p></div>';
     $('#avbtn').onclick = function () {
       var root = $('#modal-root');

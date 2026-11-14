@@ -1,0 +1,57 @@
+/* ---------- Atelier de logique ---------- */
+.lg-main { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) clamp(300px, 36vw, 420px); gap: 10px; }
+.lg-board { position: relative; min-height: 0; min-width: 0; display: flex; flex-direction: column; border-radius: 16px; border: 3px solid #0d2a1a; overflow: hidden;
+  background: radial-gradient(circle at 1px 1px, rgba(255,255,255,.10) 1.5px, transparent 0) 0 0 / 22px 22px, linear-gradient(160deg, #1d5a3a, #123d27); }
+.lgsvg { flex: 1; min-height: 0; width: 100%; height: 100%; }
+.lg-side { min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 2px; }
+.lg-block { background: var(--surface); border: 2px solid var(--line); border-radius: 14px; padding: 8px 10px; }
+.lg-block h4 { margin: 0 0 6px; font-size: 15px; display: flex; align-items: center; justify-content: space-between; }
+.lg-row { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; margin: 4px 0; }
+.lg-lab { font-size: 13px; color: var(--muted); min-width: 64px; font-weight: 700; }
+.lg-legend { display: flex; gap: 6px; flex-wrap: wrap; }
+.lg-about { margin: 6px 0 0; font-size: 14px; color: var(--muted); }
+.lchip { font: inherit; font-size: 14px; font-weight: 800; padding: 5px 10px; border-radius: 10px; border: 2px solid var(--line); background: var(--bg); color: var(--ink); cursor: pointer; border-left: 6px solid var(--c, var(--line)); }
+.lchip:hover { border-color: var(--c, var(--blue)); }
+.lchip.on { background: var(--c, var(--blue)); color: #fff; border-color: var(--c, var(--blue)); text-shadow: 0 1px 1px rgba(0,0,0,.35); }
+.lchip.fixed { cursor: default; }
+.lx { border: 0; background: var(--err-bg); color: var(--red); border-radius: 8px; cursor: pointer; font-weight: 800; padding: 2px 8px; }
+.lg-add { align-self: flex-start; }
+.lg-toast { font-weight: 700; padding: 4px 10px; border-radius: 10px; flex: 1; min-width: 120px; font-size: 14px; }
+.lg-toast.warn { background: var(--warn-bg); } .lg-toast.hint { background: var(--hint-bg); }
+.lg-table { border-collapse: collapse; width: 100%; font-size: 14px; text-align: center; }
+.lg-table th { font-size: 12px; color: var(--muted); padding: 2px 4px; } .lg-table td { padding: 3px 4px; border-top: 1px solid var(--line); font-weight: 700; }
+.lg-table .lampon { color: #e5a62b; } .lg-table tr.okrow td:last-child { color: var(--green); } .lg-table tr.kors { background: var(--err-bg); }
+.cell { font: inherit; font-weight: 800; width: 44px; height: 32px; border-radius: 8px; border: 2px solid var(--line); background: var(--bg); color: var(--muted); cursor: pointer; }
+.cell.one { background: #ffd54f; border-color: #e5a62b; color: #3a2a00; } .cell.zero { background: var(--surface); color: var(--ink); }
+.cell.ok { box-shadow: 0 0 0 2px var(--green); } .cell.ko { box-shadow: 0 0 0 2px var(--red); background: var(--err-bg); }
+.lg-num { position: absolute; left: 10px; right: 10px; bottom: 8px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; background: rgba(0,0,0,.45); color: #fff; padding: 6px 10px; border-radius: 12px; font-size: 15px; }
+.lg-num b { font-size: 20px; color: #ffd54f; } .lg-num em { font-style: normal; opacity: .8; font-size: 13px; } .lg-num i { font-style: normal; font-weight: 800; }
+
+/* éléments du circuit */
+.wire { fill: none; stroke-width: 5; stroke-linecap: round; }
+.wire.off { stroke: #5e7f6b; } .wire.on { stroke: #ffd54f; stroke-dasharray: 12 8; animation: flow .7s linear infinite; filter: drop-shadow(0 0 4px rgba(255,213,79,.9)); }
+@keyframes flow { to { stroke-dashoffset: -20; } }
+.pin { fill: #2b4a39; stroke: #9bc4aa; stroke-width: 2; } .pin.on { fill: #ffd54f; stroke: #fff; } .pin.free { fill: none; stroke: #ffb74d; stroke-dasharray: 3 3; }
+.brick .body { stroke: rgba(0,0,0,.35); stroke-width: 2; } .brick .shine { fill: url(#none); fill: rgba(255,255,255,.10); pointer-events: none; }
+.stud { stroke: rgba(0,0,0,.3); stroke-width: 1.5; } .studbase { opacity: .95; }
+.bsym { font-size: 30px; font-weight: 800; fill: #fff; paint-order: stroke; stroke: rgba(0,0,0,.35); stroke-width: 3px; }
+.bname { font-size: 13px; font-weight: 800; fill: #fff; } .bnum { font-size: 12px; font-weight: 800; fill: #cfe9d9; } .olabel { font-size: 10px; font-weight: 700; fill: #fff; }
+.switch { cursor: pointer; } .switch .sbody { fill: #33433a; stroke: #0d2a1a; stroke-width: 3; } .switch.on .sbody { fill: #2e7d32; }
+.switch .sknob { fill: #cfd8dc; stroke: #607d8b; stroke-width: 2; } .switch.on .sknob { fill: #fff; } .sstate { font-size: 24px; font-weight: 800; fill: #fff; pointer-events: none; }
+.switch:hover .sbody { stroke: #ffd54f; }
+.ilabel { font-size: 15px; font-weight: 800; fill: #e8f5e9; } .lemoji { font-size: 26px; }
+.lamp .halo { fill: transparent; } .lamp .bulb { fill: #2a3b31; stroke: #9bc4aa; stroke-width: 3; }
+.lamp.on .halo { fill: rgba(255,235,59,.35); animation: pulse 1.2s ease-in-out infinite; } .lamp.on .bulb { fill: #fff176; stroke: #fff; filter: drop-shadow(0 0 10px rgba(255,235,59,.95)); }
+@keyframes pulse { 50% { transform: scale(1.15); } } .lamp .halo { transform-box: fill-box; transform-origin: center; }
+
+/* briques décoratives (liste, fenêtre de réussite) */
+.mybricks { display: flex; flex-wrap: wrap; gap: 14px; padding-top: 8px; }
+.mybrick, .newbrick { position: relative; width: 92px; padding-top: 12px; }
+.newbrick { margin: 10px auto; width: 120px; }
+.mb-studs { position: absolute; top: 0; left: 8px; right: 8px; display: flex; justify-content: space-around; }
+.mb-studs i { display: block; width: 18px; height: 14px; border-radius: 6px 6px 2px 2px; background: var(--c); filter: brightness(1.1); border: 2px solid rgba(0,0,0,.25); }
+.mb-body { background: var(--c); border-radius: 12px; border: 2px solid rgba(0,0,0,.25); text-align: center; padding: 8px 4px; color: #fff; text-shadow: 0 1px 1px rgba(0,0,0,.4); }
+.mb-body b { display: block; font-size: 26px; } .mb-body span { font-size: 12px; font-weight: 800; }
+.mybrick.locked { opacity: .45; filter: grayscale(.8); }
+
+@media (max-width: 760px) { .lg-main { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); } }
