@@ -1,7 +1,7 @@
 {
-  "name": "Tortue Blocs",
-  "short_name": "Tortue Blocs",
-  "description": "Apprendre à programmer en dessinant avec des blocs.",
+  "name": "Labo Code",
+  "short_name": "Labo Code",
+  "description": "Programmer, résoudre des labyrinthes et décoder des messages secrets.",
   "lang": "fr",
   "start_url": "./index.html",
   "scope": "./",

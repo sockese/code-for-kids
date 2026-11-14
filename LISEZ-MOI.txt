@@ -1,21 +1,26 @@
-TORTUE BLOCS — apprendre à programmer en dessinant
-==================================================
+LABO CODE — programmer, explorer, décoder
+=========================================
 
-Pour jouer : double-cliquer sur « index.html » (Chrome, Edge ou Firefox).
-Aucune installation, pas besoin d'Internet.
+Pour jouer : ouvrir l'adresse du site (ou « index.html ») dans Chrome, Edge ou Firefox.
+Sur tablette Android : Chrome → menu ⋮ → « Installer l'application » (fonctionne ensuite hors ligne).
 
-- On tape son prénom (pas de mot de passe). La progression est sauvegardée dans le navigateur,
-  sur cet ordinateur (même navigateur, même profil).
-- 75 niveaux en 8 séries (A à H), tous ouverts : Instructions, Directions, Paramètres, Boucles,
-  Boucles imbriquées, Variables, Fonctions, Défis. Plus un mode clair/sombre (bouton en haut) et un mode « Création libre ».
-- Bouton « 💡 Indice » dans chaque niveau, « 👀 Solution » réservé aux adultes.
-- Page de test automatique des niveaux : index.html#test
+Parcours : écran d'arrivée → choix du prénom + avatar (pas de mot de passe) → hub avec 3 activités.
+La progression est sauvegardée dans le navigateur, par prénom. Points et rang communs aux 3 activités.
+
+ACTIVITÉS
+- 🐢 Tortue — Dessins : 75 niveaux en 8 séries (A à H) + mode création libre. Blocs Blockly en français.
+- 🧭 Tortue — Labyrinthes : 12 niveaux (avancer, tourner, répéter, répéter jusqu'à l'arrivée, si / sinon, fraises).
+- 🕵️ Agence Z : 36 missions en 6 séries (symboles, César, binaire, texte en binaire, morse/miroir/grille,
+  opérations spéciales) + dossier secret (histoire), grades, insignes, et « Courrier » pour échanger des
+  messages codés avec un ami par copier-coller (rien n'est envoyé sur Internet).
+
+Pour les adultes : boutons « Solution » dans chaque niveau / mission. Page de test automatique : #test
+(ex. https://sockese.github.io/tortue-blocs/#test).
 
 Fichiers
-  SPEC.md           la spécification
+  SPEC*.md          les spécifications
   DEPLOIEMENT.md    installation sur tablette Android (mode appli, hors ligne)
-  index.html        la page
-  css/ js/          le code de l'application
+  index.html, css/, js/, icons/, sw.js, manifest.webmanifest
   vendor/           Blockly (Google, licence Apache 2.0) pour l'éditeur de blocs
 
-Tous les niveaux et graphismes sont originaux ; rien n'est copié depuis algoblocs.fr.
+Tous les niveaux, missions, textes et graphismes sont originaux ; rien n'est copié depuis un autre site.

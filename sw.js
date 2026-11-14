@@ -1,10 +1,10 @@
 /* Tortue Blocs — service worker : fonctionnement hors ligne.
    Stratégie : on sert le cache tout de suite, et on le met à jour en arrière-plan
    (les mises à jour de l'appli arrivent donc au lancement suivant). */
-var CACHE = 'tortue-blocs-v3';
+var CACHE = 'tortue-blocs-v5';
 var FILES = [
-  './', 'index.html', 'manifest.webmanifest', 'css/style.css',
-  'js/turtle.js', 'js/blocks.js', 'js/levels.js', 'js/app.js',
+  './', 'index.html', 'manifest.webmanifest', 'css/style.css', 'css/agence.css',
+  'js/turtle.js', 'js/blocks.js', 'js/levels.js', 'js/app.js', 'js/labyrinthe.js', 'js/agence.js', 'js/main.js',
   'vendor/blockly_compressed.js', 'vendor/blocks_compressed.js', 'vendor/javascript_compressed.js', 'vendor/msg/fr.js',
   'vendor/media/sprites.png', 'vendor/media/sprites.svg', 'vendor/media/1x1.gif', 'vendor/media/dropdown-arrow.svg',
   'vendor/media/handopen.cur', 'vendor/media/handclosed.cur', 'vendor/media/handdelete.cur',

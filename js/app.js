@@ -4,8 +4,7 @@
   var TB = window.TB;
   var $ = function (s, r) { return (r || document).querySelector(s); };
 
-  var RANKS = ['Œuf', 'Têtard', 'Tortillon', 'Petite tortue', 'Tortue curieuse', 'Tortue maligne', 'Tortue habile',
-    'Tortue astucieuse', 'Tortue savante', 'Tortue experte', 'Tortue maître', 'Tortue sage', 'Tortue héroïque', 'Tortue légendaire'];
+  var RANKS = ['Œuf', 'Poussin', 'Apprenti', 'Curieux', 'Malin', 'Habile', 'Astucieux', 'Savant', 'Expert', 'Maître', 'Sage', 'Héros', 'Génie', 'Légende'];
   // Curseur de vitesse : 1 (très lent) à 5 (instantané), en pixels par image.
   var SPEEDS = [1.5, 4.5, 11, 32, Infinity];
   var SPEED_NAMES = ['très lent', 'lent', 'normal', 'rapide', 'instantané'];
@@ -76,44 +75,84 @@
 
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
+  /* ---------- profils ---------- */
+  var AVATARS = ['🐢', '🦊', '🐱', '🐶', '🦉', '🐙', '🦄', '🤖'];
+  function newProfile(avatar) { var p = { done: {}, ws: {}, avatar: avatar }; ensureProfile(p); return p; }
+  function ensureProfile(p) {
+    p.done = p.done || {}; p.ws = p.ws || {}; p.avatar = p.avatar || AVATARS[0];
+    p.laby = p.laby || {}; p.laby.done = p.laby.done || {}; p.laby.ws = p.laby.ws || {};
+    p.agence = p.agence || {}; p.agence.done = p.agence.done || {};
+  }
+  Object.keys(data.profiles).forEach(function (n) { ensureProfile(data.profiles[n]); });
+
+  /* Points : tous les modules s'enregistrent ici, le total sert au rang global. */
+  var pointFns = [], routes = [], disposers = [], activities = [], testFns = [];
+  function allPoints(p) { var s = totalPoints(p); pointFns.forEach(function (f) { s += f(p); }); return s; }
+
   /* ---------- en-tête ---------- */
-  function renderHeader(route) {
+  var NAVS = {
+    tortue: [['#/liste', '▶ Niveaux', 'liste'], ['#/libre', '✏️ Création libre', 'libre']],
+    laby: [['#/labyrinthes', '▶ Niveaux', 'laby']],
+    agence: [['#/agence', '🕵️ Missions', 'missions'], ['#/agence/message', '✉️ Courrier', 'message'], ['#/agence/dossier', '📁 Dossier', 'dossier']]
+  };
+  function renderHeader(route, activity) {
+    if (!activity) activity = (route === 'liste' || route === 'niveau' || route === 'libre') ? 'tortue' : '';
     var p = data.current && profile();
-    var nav = p ? '<nav class="nav"><a href="#/liste" class="' + (route === 'liste' ? 'on' : '') + '">▶ Niveaux</a>' +
-      '<a href="#/libre" class="' + (route === 'libre' ? 'on' : '') + '">✏️ Création libre</a></nav>' : '<nav class="nav"></nav>';
+    var nav = '<nav class="nav">';
+    if (p) {
+      nav += '<a href="#/accueil" class="' + (!activity ? 'on' : '') + '">🏠 Activités</a>';
+      (NAVS[activity] || []).forEach(function (n) { nav += '<a href="' + n[0] + '" class="' + (route === n[2] ? 'on' : '') + '">' + n[1] + '</a>'; });
+    }
+    nav += '</nav>';
     var user = '';
     if (p) {
-      var pts = totalPoints(p), r = rankInfo(pts);
-      user = '<div class="user"><div class="who"><b>' + esc(data.current) + '</b><small>' + r.name + ' · ' + pts + ' pts</small></div>' +
+      var pts = allPoints(p), r = rankInfo(pts);
+      user = '<div class="user"><div class="who"><b>' + p.avatar + ' ' + esc(data.current) + '</b><small>' + r.name + ' · ' + pts + ' pts</small></div>' +
         '<div class="rankbar" title="' + r.inRank + ' / 50 pour le rang suivant"><i style="width:' + r.pct + '%"></i></div>' +
         '<button class="btn small" id="snd" title="Son">' + (data.sound ? '🔊' : '🔇') + '</button>' +
         '<a class="btn small" href="#/connexion">Changer</a></div>';
     }
     var themeBtn = '<button class="btn small" id="thm" title="Mode clair / sombre">' + (isDark() ? '☀️ Clair' : '🌙 Sombre') + '</button>';
-    $('#topbar').innerHTML = '<a class="logo" href="#/liste">🐢 <span class="a">Tortue</span> <span class="b">Blocs</span></a>' + nav + user + themeBtn;
+    $('#topbar').innerHTML = '<a class="logo" href="#/accueil">🧪 <span class="a">Labo</span> <span class="b">Code</span></a>' + nav + user + themeBtn;
     $('#thm').onclick = function () { data.theme = isDark() ? 'light' : 'dark'; save(); applyTheme(); route(); };
     var snd = $('#snd');
     if (snd) snd.onclick = function () { data.sound = !data.sound; save(); snd.textContent = data.sound ? '🔊' : '🔇'; beep([660]); };
   }
 
+  /* ---------- écran d'arrivée ---------- */
+  function viewWelcome() {
+    renderHeader('bienvenue');
+    $('#view').innerHTML = '<div class="welcome"><div class="hero-emoji">🐢 🕵️ 🧪</div><h1>Labo <span>Code</span></h1>' +
+      '<p>Apprends à programmer, résous des labyrinthes et décode des messages secrets en jouant !</p>' +
+      '<a class="btn go big" href="#/connexion">▶ Commencer</a></div>';
+  }
+
   /* ---------- connexion ---------- */
   function viewLogin() {
     renderHeader('connexion');
-    var names = Object.keys(data.profiles);
+    var names = Object.keys(data.profiles), chosen = AVATARS[0];
     var list = names.map(function (n) {
-      return '<span class="profile"><button data-n="' + esc(n) + '">🐢 ' + esc(n) + ' · ' + totalPoints(data.profiles[n]) + ' pts</button>' +
+      var pr = data.profiles[n];
+      return '<span class="profile"><button data-n="' + esc(n) + '">' + pr.avatar + ' ' + esc(n) + ' · ' + allPoints(pr) + ' pts</button>' +
         '<button class="x" data-del="' + esc(n) + '" title="Supprimer ce joueur">✕</button></span>';
     }).join('');
-    $('#view').innerHTML = '<div class="login card"><div class="turtle">🐢</div><h1>Bienvenue !</h1>' +
-      '<p>Programme la tortue avec des blocs pour dessiner des figures.<br>Comment t’appelles-tu ?</p>' +
-      '<form id="f"><input id="nm" maxlength="20" placeholder="Ton prénom" autocomplete="off" autofocus><button class="btn primary" type="submit">C’est parti !</button></form>' +
-      (names.length ? '<p>Ou reprends ta partie :</p><div class="profiles">' + list + '</div>' : '') + '</div>';
+    $('#view').innerHTML = '<div class="login card"><h1>Qui joue ?</h1>' +
+      (names.length ? '<p>Reprends ta partie :</p><div class="profiles">' + list + '</div><p>Ou crée un nouveau joueur :</p>' : '<p>Comment t’appelles-tu ?</p>') +
+      '<form id="f"><input id="nm" maxlength="20" placeholder="Ton prénom" autocomplete="off"><button class="btn primary" type="submit">C’est parti !</button></form>' +
+      '<p class="small">Choisis ton avatar :</p><div class="avatars" id="avs">' +
+      AVATARS.map(function (a, i) { return '<button type="button" class="avatar' + (i === 0 ? ' on' : '') + '" data-a="' + a + '">' + a + '</button>'; }).join('') + '</div></div>';
+    document.querySelectorAll('#avs .avatar').forEach(function (b) {
+      b.onclick = function () {
+        chosen = b.dataset.a;
+        document.querySelectorAll('#avs .avatar').forEach(function (x) { x.classList.toggle('on', x === b); });
+      };
+    });
     $('#f').onsubmit = function (e) {
       e.preventDefault();
       var n = $('#nm').value.trim().replace(/\s+/g, ' ');
       if (!n) { $('#nm').focus(); return; }
       n = n.charAt(0).toUpperCase() + n.slice(1);
-      if (!data.profiles[n]) data.profiles[n] = { done: {}, ws: {} };
+      if (!data.profiles[n]) data.profiles[n] = newProfile(chosen);
       login(n);
     };
     document.querySelectorAll('.profile button[data-n]').forEach(function (b) { b.onclick = function () { login(b.dataset.n); }; });
@@ -124,7 +163,28 @@
       };
     });
   }
-  function login(n) { data.current = n; save(); location.hash = '#/liste'; route(); }
+  function login(n) { data.current = n; ensureProfile(data.profiles[n]); save(); location.hash = '#/accueil'; route(); }
+
+  /* ---------- hub : les activités ---------- */
+  function viewHub() {
+    renderHeader('hub');
+    var p = profile();
+    var cards = activities.map(function (a) {
+      var pr = a.progress(p), pct = pr.total ? Math.round(pr.done / pr.total * 100) : 0;
+      return '<a class="activity" href="' + a.href + '"><div class="act-icon">' + a.icon + '</div><h2>' + a.title + '</h2><p>' + a.desc + '</p>' +
+        '<div class="act-prog"><div class="rankbar"><i style="width:' + pct + '%"></i></div><span>' + pr.done + ' / ' + pr.total + ' · ' + pr.points + ' pts</span></div></a>';
+    }).join('');
+    $('#view').innerHTML = '<div class="hub"><h1>Bonjour ' + p.avatar + ' ' + esc(data.current) + ' !</h1><p>Choisis une activité :</p>' +
+      '<div class="activities">' + cards + '</div><p><button class="btn small" id="avbtn">Changer d’avatar</button></p></div>';
+    $('#avbtn').onclick = function () {
+      var root = $('#modal-root');
+      root.innerHTML = '<div class="overlay"><div class="dialog"><h2>Mon avatar</h2><div class="avatars">' +
+        AVATARS.map(function (a) { return '<button class="avatar' + (a === p.avatar ? ' on' : '') + '" data-a="' + a + '">' + a + '</button>'; }).join('') + '</div></div></div>';
+      root.querySelectorAll('.avatar').forEach(function (b) {
+        b.onclick = function () { p.avatar = b.dataset.a; save(); root.innerHTML = ''; viewHub(); };
+      });
+    };
+  }
 
   /* ---------- liste des niveaux (avec vignettes) ---------- */
   function drawThumb(c) {
@@ -180,9 +240,7 @@
   function startXml() { return '<xml xmlns="https://developers.google.com/blockly/xml"><block type="fr_start" x="20" y="20" deletable="false"></block></xml>'; }
 
   /* Le bloc de départ reste toujours en haut à gauche de la zone de blocs (à droite du menu des blocs). */
-  function placeStart() {
-    if (!cur) return;
-    var ws = cur.ws;
+  function placeStartBlock(ws) {
     var s = ws.getTopBlocks(false).filter(function (b) { return b.type === 'fr_start'; })[0];
     if (!s) return;
     var m = ws.getMetrics(), sc = ws.scale || 1;
@@ -190,6 +248,7 @@
     var xy = s.getRelativeToSurfaceXY();
     if (Math.abs(xy.x - targetX) > 1 || Math.abs(xy.y - targetY) > 1) s.moveBy(targetX - xy.x, targetY - xy.y);
   }
+  function placeStart() { if (cur) placeStartBlock(cur.ws); }
 
   /* Boîte à outils plate, remise à jour quand l'enfant crée une fonction ou un paramètre. */
   function toolboxEnv() {
@@ -208,9 +267,8 @@
     setTimeout(function () { if (cur) { Blockly.svgResize(cur.ws); placeStart(); } }, 0);
   }
 
-  /* Adapte la page à la taille de l'écran : jamais de défilement de la page. */
-  function fitLayout() {
-    if (!cur) return;
+  /* Adapte la page à la taille de l'écran : jamais de défilement de la page (#lbody, #side, #cvw). */
+  function layoutLevel(ws) {
     document.documentElement.style.setProperty('--top', $('#topbar').offsetHeight + 'px');
     var body = $('#lbody'), side = $('#side');
     if (!body || !side) return;
@@ -236,9 +294,9 @@
       body.style.gridTemplateRows = 'minmax(0,1fr) auto';
       apply(cv);
     }
-    Blockly.svgResize(cur.ws);
-    placeStart();
+    if (ws) { Blockly.svgResize(ws); placeStartBlock(ws); }
   }
+  function fitLayout() { if (cur) layoutLevel(cur.ws); }
 
   function viewLevel(id) {
     var lv = id === 'libre' ? null : TB.LEVEL_BY_ID[id];
@@ -416,7 +474,11 @@
     }
     c.drawImage(cur.layer, 0, 0);
     var p = TB.px(cur.map, cur.t.x, cur.t.y);
-    c.save(); c.translate(p[0], p[1]); c.rotate(cur.t.a * Math.PI / 180);
+    drawTurtleSprite(c, p[0], p[1], cur.t.a, 1);
+  }
+  /* Petite tortue vue de dessus, tête vers le haut (angle = 0), k = échelle. */
+  function drawTurtleSprite(c, x, y, angle, k) {
+    c.save(); c.translate(x, y); c.rotate(angle * Math.PI / 180); c.scale(k, k);
     c.fillStyle = '#2e7d32'; c.strokeStyle = '#1b5e20'; c.lineWidth = 2;
     [[-10, -8], [10, -8], [-10, 9], [10, 9]].forEach(function (l) { c.beginPath(); c.arc(l[0], l[1], 4.5, 0, 7); c.fill(); c.stroke(); });
     c.beginPath(); c.arc(0, -15, 6, 0, 7); c.fill(); c.stroke();
@@ -541,11 +603,11 @@
 
   function succeed(blocks) {
     var lv = cur.lv, p = profile();
-    var before = totalPoints(p), rb = rankInfo(before);
+    var before = allPoints(p), rb = rankInfo(before);
     var prev = p.done[lv.id];
     if (!prev || blocks < prev.blocks) p.done[lv.id] = { blocks: blocks, ts: Date.now() };
     save();
-    var after = totalPoints(p), ra = rankInfo(after), gained = after - before;
+    var after = allPoints(p), ra = rankInfo(after), gained = after - before;
     renderHeader('niveau');
     beep([523, 659, 784, 1047]);
     confetti();
@@ -578,8 +640,7 @@
   }
 
   /* ---------- page de test (#test) ---------- */
-  function viewTest() {
-    renderHeader('test');
+  function tortueTests() {
     var rows = '', fails = 0;
     TB.LEVELS.forEach(function (lv) {
       var status = [], ok = true;
@@ -613,23 +674,59 @@
       if (!ok) fails++;
       rows += '<tr><td>' + lv.label + '</td><td>' + esc(lv.title) + '</td><td class="' + (ok ? 'okc' : 'koc') + '">' + (ok ? 'OK' : 'ÉCHEC') + '</td><td>' + esc(status.join(' ; ')) + '</td></tr>';
     });
-    $('#view').innerHTML = '<h2>Tests des ' + TB.LEVELS.length + ' niveaux : <span id="test-result" class="' + (fails ? 'koc' : 'okc') + '">' + (fails ? fails + ' échec(s)' : 'tout est OK') + '</span></h2>' +
-      '<table class="t"><tr><th>Niveau</th><th>Titre</th><th>Résultat</th><th>Détail</th></tr>' + rows + '</table>';
+    return { title: 'Tortue — Dessins (' + TB.LEVELS.length + ' niveaux)', rows: rows, fails: fails };
+  }
+
+  function viewTest() {
+    renderHeader('test');
+    var sections = [tortueTests()].concat(testFns.map(function (f) { return f(); }));
+    var fails = sections.reduce(function (n, x) { return n + x.fails; }, 0);
+    $('#view').innerHTML = '<h2>Tests : <span id="test-result" class="' + (fails ? 'koc' : 'okc') + '">' + (fails ? fails + ' échec(s)' : 'tout est OK') + '</span></h2>' +
+      sections.map(function (x) {
+        return '<h3>' + x.title + ' — ' + (x.fails ? '<span class="koc">' + x.fails + ' échec(s)</span>' : '<span class="okc">OK</span>') + '</h3>' +
+          '<table class="t"><tr><th>Élément</th><th>Titre</th><th>Résultat</th><th>Détail</th></tr>' + x.rows + '</table>';
+      }).join('');
   }
 
   /* ---------- routage ---------- */
   function route() {
     var h = location.hash || '';
     disposeCurrent();
+    disposers.forEach(function (f) { try { f(); } catch (e) { /* ignoré */ } });
     $('#view').className = '';
     $('#modal-root').innerHTML = '';
     if (h === '#test') { viewTest(); return; }
-    if (!data.current || !data.profiles[data.current] || h === '#/connexion') { viewLogin(); return; }
+    var logged = data.current && data.profiles[data.current];
+    if (h === '#/connexion') { viewLogin(); return; }
+    if (!logged) { if (h === '' || h === '#/' || h === '#/bienvenue') viewWelcome(); else viewLogin(); return; }
     var m;
-    if ((m = h.match(/^#\/niveau\/([A-Z]\d+)$/))) viewLevel(m[1]);
-    else if (h === '#/libre') viewLevel('libre');
-    else viewList();
+    if (h === '' || h === '#/' || h === '#/accueil') { viewHub(); return; }
+    if ((m = h.match(/^#\/niveau\/([A-Z]\d+)$/))) { viewLevel(m[1]); return; }
+    if (h === '#/libre') { viewLevel('libre'); return; }
+    if (h === '#/liste') { viewList(); return; }
+    for (var i = 0; i < routes.length; i++) {
+      if ((m = h.match(routes[i][0]))) { routes[i][1](m); return; }
+    }
+    viewHub();
   }
-  window.addEventListener('hashchange', route);
-  route();
+
+  activities.push({
+    id: 'tortue', href: '#/liste', icon: '🐢', title: 'Tortue — Dessins',
+    desc: 'Dessine des figures en assemblant des blocs.',
+    progress: function (p) { return { done: Object.keys(p.done).filter(function (id) { return TB.LEVEL_BY_ID[id]; }).length, total: TB.LEVELS.length, points: totalPoints(p) }; }
+  });
+
+  /* API pour les autres activités (labyrinthes, agence secrète). */
+  window.App = {
+    $: $, data: data, save: save, profile: profile, esc: esc, beep: beep, confetti: confetti, isDark: isDark, blocklyTheme: blocklyTheme,
+    renderHeader: renderHeader, route: route, rankInfo: rankInfo, allPoints: allPoints, AVATARS: AVATARS,
+    placeStartBlock: placeStartBlock, layoutLevel: layoutLevel, drawTurtleSprite: drawTurtleSprite,
+    SPEEDS: SPEEDS, SPEED_NAMES: SPEED_NAMES,
+    registerPoints: function (f) { pointFns.push(f); },
+    registerRoute: function (re, fn) { routes.push([re, fn]); },
+    registerDispose: function (f) { disposers.push(f); },
+    registerActivity: function (a) { activities.push(a); },
+    registerTests: function (f) { testFns.push(f); },
+    start: function () { window.addEventListener('hashchange', route); route(); }
+  };
 })();

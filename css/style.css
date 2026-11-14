@@ -167,3 +167,31 @@ table.t td, table.t th { border: 1px solid var(--line); padding: 4px 8px; text-a
 :root[data-theme="dark"] .counter.over { color: #f2a7a1; border-color: #7a3430; }
 :root[data-theme="dark"] .btn.primary, :root[data-theme="dark"] .badge { color: #0c1422; }
 :root[data-theme="dark"] input, :root[data-theme="dark"] select { background: var(--surface); color: var(--ink); }
+
+
+/* ---------- Labo Code : accueil, connexion, activités ---------- */
+.welcome { text-align: center; max-width: 640px; margin: 8vh auto 0; }
+.welcome .hero-emoji { font-size: 72px; letter-spacing: 8px; }
+.welcome h1 { font-size: 56px; margin: 10px 0; }
+.welcome h1 span { color: var(--blue); }
+.welcome p { color: var(--muted); font-size: 20px; }
+.btn.big { font-size: 24px; padding: 14px 34px; margin-top: 18px; }
+.login h1 { text-align: center; }
+.login .small { margin: 14px 0 6px; font-size: 15px; }
+.avatars { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.avatar { font-size: 32px; width: 56px; height: 56px; border-radius: 14px; border: 2px solid var(--line); background: var(--surface); cursor: pointer; }
+.avatar:hover { border-color: var(--blue); }
+.avatar.on { border-color: var(--blue); background: var(--hover); box-shadow: 0 0 0 3px rgba(30,136,229,.25); }
+.hub { max-width: 980px; margin: 0 auto; text-align: center; }
+.hub h1 { font-size: 34px; }
+.hub > p { color: var(--muted); }
+.activities { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; margin: 18px 0; }
+.activity { background: var(--card); border: 2px solid var(--line); border-radius: 18px; padding: 20px 16px; transition: transform .12s, border-color .12s; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.activity:hover { transform: translateY(-4px); border-color: var(--blue); }
+.activity .act-icon { font-size: 64px; }
+.activity h2 { font-size: 22px; }
+.activity p { color: var(--muted); margin: 0 0 8px; min-height: 48px; }
+.act-prog { width: 100%; }
+.act-prog .rankbar { width: 100%; margin-bottom: 6px; }
+.act-prog span { font-size: 14px; color: var(--muted); font-weight: 700; }
+.dialog .avatars { margin-top: 12px; }
