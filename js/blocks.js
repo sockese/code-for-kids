@@ -160,7 +160,29 @@
   G.forBlock['lab_ifberry'] = function (b, gen) {
     return 'if (surFraise()) {\n' + gen.statementToCode(b, 'DO') + '}\n';
   };
-  G.addReservedWords('avancerCase,tournerGauche,tournerDroite,manger,chemin,arrivee,surFraise');
+  /* ---------- Blocs du robot (Usine à machines) ---------- */
+  var ROB_COND = [['chemin devant', 'devant'], ['bouton ici', 'bouton']];
+  Blockly.defineBlocksWithJsonArray([
+    { type: 'rob_turn', message0: 'faire demi-tour ↺', previousStatement: null, nextStatement: null, colour: 210, tooltip: 'Brickbot se retourne.' },
+    { type: 'rob_press', message0: 'appuyer sur le bouton', previousStatement: null, nextStatement: null, colour: 20, tooltip: 'Appuie sur le bouton qui est sous Brickbot.' },
+    {
+      type: 'rob_if', message0: 'si %1', args0: [{ type: 'field_dropdown', name: 'C', options: ROB_COND }],
+      message1: 'faire %1', args1: [{ type: 'input_statement', name: 'DO' }],
+      previousStatement: null, nextStatement: null, colour: 45, tooltip: 'Fait les blocs seulement si c’est vrai.'
+    },
+    {
+      type: 'rob_ifelse', message0: 'si %1', args0: [{ type: 'field_dropdown', name: 'C', options: ROB_COND }],
+      message1: 'faire %1', args1: [{ type: 'input_statement', name: 'DO' }],
+      message2: 'sinon %1', args2: [{ type: 'input_statement', name: 'ELSE' }],
+      previousStatement: null, nextStatement: null, colour: 45, tooltip: 'Un groupe de blocs si c’est vrai, un autre sinon.'
+    }
+  ]);
+  function robCond(b) { return b.getFieldValue('C') === 'bouton' ? 'surBouton()' : "chemin('devant')"; }
+  G.forBlock['rob_turn'] = function () { return 'faireDemiTour();\n'; };
+  G.forBlock['rob_press'] = function () { return 'appuyer();\n'; };
+  G.forBlock['rob_if'] = function (b, gen) { return 'if (' + robCond(b) + ') {\n' + gen.statementToCode(b, 'DO') + '}\n'; };
+  G.forBlock['rob_ifelse'] = function (b, gen) { return 'if (' + robCond(b) + ') {\n' + gen.statementToCode(b, 'DO') + '} else {\n' + gen.statementToCode(b, 'ELSE') + '}\n'; };
+  G.addReservedWords('avancerCase,tournerGauche,tournerDroite,manger,chemin,arrivee,surFraise,faireDemiTour,appuyer,attendre,surBouton');
 
   /* Génère le code du programme : seulement le bloc de départ et les fonctions. */
   TB.generateCode = function (ws, withHighlight) {
@@ -215,6 +237,10 @@
     if (has('leat')) add('lab_eat');
     if (has('lrep')) add('controls_repeat_ext', { TIMES: num('cnt') });
     if (has('luntil')) add('lab_until');
+    if (has('rmove')) add('lab_forward');
+    if (has('rturn')) add('rob_turn');
+    if (has('rpress')) add('rob_press');
+    if (has('rif')) { add('rob_if'); add('rob_ifelse'); }
     if (has('lwhile')) add('lab_while');
     if (has('lif')) { add('lab_if'); add('lab_ifelse'); }
     if (has('lberry')) add('lab_ifberry');
@@ -285,6 +311,11 @@
       case 'LL': return '<block type="lab_left">' + nxt + '</block>';
       case 'LR': return '<block type="lab_right">' + nxt + '</block>';
       case 'LE': return '<block type="lab_eat">' + nxt + '</block>';
+      case 'RT': return '<block type="rob_turn">' + nxt + '</block>';
+      case 'RP': return '<block type="rob_press">' + nxt + '</block>';
+      case 'rif': return '<block type="rob_if"><field name="C">' + s[1] + '</field><statement name="DO">' + chain(s[2]) + '</statement>' + nxt + '</block>';
+      case 'rifelse': return '<block type="rob_ifelse"><field name="C">' + s[1] + '</field><statement name="DO">' + chain(s[2]) +
+        '</statement><statement name="ELSE">' + chain(s[3]) + '</statement>' + nxt + '</block>';
       case 'while': return '<block type="lab_while"><field name="C">' + s[1] + '</field><statement name="DO">' + chain(s[2]) + '</statement>' + nxt + '</block>';
       case 'ifb': return '<block type="lab_ifberry"><statement name="DO">' + chain(s[1]) + '</statement>' + nxt + '</block>';
       case 'until': return '<block type="lab_until"><statement name="DO">' + chain(s[1]) + '</statement>' + nxt + '</block>';
@@ -352,6 +383,8 @@
         case 'def': n += TB.dslCount(s[3]); break;
         case 'until': n += TB.dslCount(s[1]); break;
         case 'while': n += TB.dslCount(s[2]); break;
+        case 'rif': n += TB.dslCount(s[2]); break;
+        case 'rifelse': n += TB.dslCount(s[2]) + TB.dslCount(s[3]); break;
         case 'ifb': n += TB.dslCount(s[1]); break;
         case 'if': n += TB.dslCount(s[2]); break;
         case 'ifelse': n += TB.dslCount(s[2]) + TB.dslCount(s[3]); break;

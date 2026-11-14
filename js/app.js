@@ -83,6 +83,7 @@
     p.laby = p.laby || {}; p.laby.done = p.laby.done || {}; p.laby.ws = p.laby.ws || {};
     p.agence = p.agence || {}; p.agence.done = p.agence.done || {};
     p.logique = p.logique || {}; p.logique.done = p.logique.done || {};
+    p.usine = p.usine || {}; p.usine.done = p.usine.done || {}; p.usine.free = p.usine.free || [null, null, null];
   }
   Object.keys(data.profiles).forEach(function (n) { ensureProfile(data.profiles[n]); });
 
@@ -95,6 +96,7 @@
     tortue: [['#/liste', '▶ Niveaux', 'liste'], ['#/libre', '✏️ Création libre', 'libre']],
     laby: [['#/labyrinthes', '▶ Niveaux', 'laby']],
     logique: [['#/logique', '🔌 Niveaux', 'liste']],
+    usine: [['#/usine', '🏭 Niveaux', 'liste'], ['#/usine/libre', '🛠️ Atelier libre', 'libre']],
     agence: [['#/agence', '🕵️ Missions', 'missions'], ['#/agence/message', '✉️ Courrier', 'message'], ['#/agence/dossier', '📁 Dossier', 'dossier']]
   };
   function renderHeader(route, activity) {

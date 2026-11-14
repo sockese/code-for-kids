@@ -4,8 +4,8 @@ LABO CODE — programmer, explorer, décoder
 Pour jouer : ouvrir l'adresse du site (ou « index.html ») dans Chrome, Edge ou Firefox.
 Sur tablette Android : Chrome → menu ⋮ → « Installer l'application » (fonctionne ensuite hors ligne).
 
-Parcours : écran d'arrivée → choix du prénom + avatar (pas de mot de passe) → hub avec 4 activités.
-La progression est sauvegardée dans le navigateur, par prénom. Points et rang communs aux 4 activités.
+Parcours : écran d'arrivée → choix du prénom + avatar (pas de mot de passe) → hub avec 5 activités.
+La progression est sauvegardée dans le navigateur, par prénom. Points et rang communs aux 5 activités.
 
 ACTIVITÉS
 - 🐢 Tortue — Dessins : 88 niveaux en 9 séries (A à I, dont « Couleurs et crayon ») + mode création libre. Blocs Blockly en français.
@@ -15,6 +15,8 @@ ACTIVITÉS
   messages codés avec un ami par copier-coller (rien n'est envoyé sur Internet).
 - 💡 Atelier de logique : 19 niveaux (interrupteurs, portes NON/ET/OU/OU exclusif/NON-ET, tables de vérité,
   construction de circuits avec des briques, additionneur binaire, défis).
+- 🏭 Usine à machines : 25 niveaux (rampes, tapis, ressorts, ventilateurs, aimants, capteurs, portes, logique,
+  robot Brickbot programmé avec des blocs) + atelier libre avec 3 sauvegardes.
 
 Pour les adultes : boutons « Solution » dans chaque niveau / mission. Page de test automatique : #test
 (ex. https://sockese.github.io/tortue-blocs/#test).

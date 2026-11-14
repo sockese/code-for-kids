@@ -1,0 +1,19 @@
+/* ---------- Usine à machines ---------- */
+.us-main { flex: 1; min-height: 0; display: flex; gap: 10px; }
+.us-left { flex: 0 0 clamp(260px, 34vw, 420px); position: relative; min-height: 0; }
+.us-center { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 6px; }
+.us-board { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; background: var(--surface); border: 2px solid var(--line); border-radius: 16px; overflow: hidden; }
+#usc { display: block; border-radius: 10px; cursor: pointer; touch-action: manipulation; }
+.us-tray { flex: none; display: flex; flex-wrap: wrap; gap: 6px; }
+.us-chip { font: inherit; font-weight: 800; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px 5px 8px; border-radius: 12px; border: 2px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; border-left: 7px solid var(--c, var(--line)); }
+.us-chip i { font-style: normal; font-size: 18px; }
+.us-chip:hover { border-color: var(--c, var(--blue)); }
+.us-chip.on { background: var(--c, var(--blue)); color: #fff; border-color: var(--c, var(--blue)); text-shadow: 0 1px 1px rgba(0,0,0,.4); }
+.us-chip.empty { opacity: .45; }
+.us-note { color: var(--muted); font-size: 14px; }
+.us-controls { flex: none; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.us-controls .speed { flex: 0 1 150px; min-width: 100px; display: inline-flex; gap: 4px; align-items: center; font-size: 14px; }
+.us-controls .speed input { flex: 1; min-width: 50px; accent-color: var(--blue); }
+.us-slots { display: inline-flex; gap: 6px; flex-wrap: wrap; } .slot3 { display: inline-flex; gap: 2px; }
+.free-card .btn { margin-top: 4px; }
+@media (max-width: 760px) { .us-main { flex-direction: column; } .us-left { flex: 0 0 38%; } }
