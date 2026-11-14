@@ -13,9 +13,11 @@
   var until = function (b) { return ['until', b]; };
   var si = function (c, b) { return ['if', c, b]; };
   var sinon = function (c, a, b) { return ['ifelse', c, a, b]; };
+  var tant = function (c, b) { return ['while', c, b]; };
+  var siFraise = function (b) { return ['ifb', b]; };
   var MAIN_GAUCHE = until([sinon('gauche', [LL, LF], [sinon('devant', [LF], [LR])])]);
 
-  var LEVELS = [
+  var LEVELS = [   // (réordonné plus bas)
     { id: 'L1', title: 'Tout droit', tools: ['lmove'], rows: ['##G##', '##.##', '##.##', '##S##'], start: [2, 3], dir: 0,
       text: 'Aide la tortue à rejoindre la laitue : elle doit avancer tout droit.',
       hint: 'Prends le bloc « avancer » et mets-en trois, l’un sous l’autre.', sol: [LF, LF, LF] },
@@ -60,13 +62,59 @@
       hint: 'Répéter 3 fois : avancer, avancer, manger. Puis avancer une dernière fois.', sol: [rep(3, [LF, LF, LE]), LF] },
     { id: 'L12', title: 'Le grand labyrinthe', tools: ['lmove', 'luntil', 'lif', 'leat'], limit: true, require: ['lab_until', 'lab_ifelse', 'lab_eat'],
       rows: ['S....#G..', '####.###.', '...#.b.#.', '##.###.#.', '...#...#.', '.#.#.###.', '.#.#.#..b', '.###.#b#.', '.......#.'], start: [0, 0], dir: 1,
-      text: 'Le défi final : trois fraises 🍓 cachées dans le labyrinthe, puis la laitue.',
+      text: 'Un grand labyrinthe : trois fraises 🍓 cachées, puis la laitue.',
       hint: 'La main gauche passe partout ! Mets « manger » en premier dans la boucle, puis la règle de la main gauche.',
+      sol: [until([LE, sinon('gauche', [LL, LF], [sinon('devant', [LF], [LR])])])] },
+
+    /* ---------- niveaux ajoutés (v5) : tant que, fraise ici, main droite, départ au centre… ---------- */
+    { id: 'L13', title: 'Deux virages', tools: ['lmove'], rows: ['##G##', '##.##', '...##', '.####', 'S####'], start: [0, 4], dir: 0,
+      text: 'Le chemin tourne deux fois : à droite, puis à gauche.',
+      hint: 'Avance 2 fois, tourne à droite, avance 2 fois, tourne à gauche, avance 2 fois.', sol: [LF, LF, LR, LF, LF, LL, LF, LF] },
+    { id: 'L14', title: 'Le U', tools: ['lmove', 'lrep'], limit: true, require: ['controls_repeat_ext'],
+      rows: ['####', '....', '.##.', '.##.', 'S##G'], start: [0, 4], dir: 0,
+      text: 'Fais le tour en U avec seulement 6 blocs : mets un « répéter » dans un « répéter » !',
+      hint: 'Répéter 2 fois : [ répéter 3 fois (avancer), tourner à droite ]. Puis encore 3 fois avancer.', sol: [rep(2, [rep(3, [LF]), LR]), rep(3, [LF])] },
+    { id: 'L15', title: 'Jusqu’au mur', tools: ['lmove', 'lwhile'], limit: true, require: ['lab_while'],
+      rows: ['######G', '######.', '######.', '######.', 'S......'], start: [0, 4], dir: 1,
+      text: 'Nouveau bloc : « répéter tant que chemin devant ». La tortue avance tant qu’elle le peut !',
+      hint: 'Répéter tant que chemin devant : avancer. Puis tourne à gauche et recommence.', sol: [tant('devant', [LF]), LL, tant('devant', [LF])] },
+    { id: 'L16', title: 'Les couloirs', tools: ['lmove', 'luntil', 'lwhile', 'lif'], limit: true, require: ['lab_until', 'lab_while', 'lab_ifelse'],
+      rows: ['#######G', '#######.', '#######.', '####....', '####.###', '####.###', 'S....###'], start: [0, 6], dir: 1,
+      text: 'Des couloirs de longueurs différentes, avec des virages à gauche et à droite.',
+      hint: 'Répéter jusqu’à l’arrivée : [ répéter tant que chemin devant (avancer), puis si chemin à gauche → tourner à gauche, sinon → tourner à droite ].',
+      sol: [until([tant('devant', [LF]), sinon('gauche', [LL], [LR])])] },
+    { id: 'L17', title: 'Fraise au passage', tools: ['lmove', 'luntil', 'lberry', 'leat'], limit: true, require: ['lab_until', 'lab_ifberry', 'lab_eat'],
+      rows: ['##########', 'S.b..b.b.G', '##########'], start: [0, 1], dir: 1,
+      text: 'Nouveau bloc : « si fraise ici ». Des fraises 🍓 traînent sur le chemin : mange-les sans les compter !',
+      hint: 'Répéter jusqu’à l’arrivée : [ si fraise ici → manger ], puis avancer.', sol: [until([siFraise([LE]), LF])] },
+    { id: 'L18', title: 'La main droite', tools: ['lmove', 'luntil', 'lif'], limit: true, require: ['lab_until', 'lab_ifelse'],
+      rows: ['S#...#G', '.#.#.#.', '.#.#.#.', '.#.#.#.', '...#.#.', '####.#.', '.......'], start: [0, 0], dir: 2,
+      text: 'Cette fois, garde la main droite sur le mur !',
+      hint: 'Si chemin à droite → tourner à droite et avancer. Sinon : si chemin devant → avancer, sinon → tourner à gauche.',
+      sol: [until([sinon('droite', [LR, LF], [sinon('devant', [LF], [LL])])])] },
+    { id: 'L19', title: 'Fraises et main gauche', tools: ['lmove', 'luntil', 'lif', 'lberry', 'leat'], limit: true, require: ['lab_until', 'lab_ifelse', 'lab_ifberry'],
+      rows: ['S#...b.', '.#####.', '...b...', '######.', '.....#.', '.###.#.', '..G#..b'], start: [0, 0], dir: 2,
+      text: 'Trois fraises 🍓 sont cachées. Mange-les en suivant le mur avec la main gauche !',
+      hint: 'Dans la boucle : si fraise ici → manger. Puis la règle de la main gauche.',
+      sol: [until([siFraise([LE]), sinon('gauche', [LL, LF], [sinon('devant', [LF], [LR])])])] },
+    { id: 'L20', title: 'Départ au centre', tools: ['lmove', 'luntil', 'lif'], limit: true, require: ['lab_until', 'lab_ifelse'],
+      rows: ['.#...#...', '.#.#.#.#.', '.#.#.#.#.', '.#.#.#.#.', '...#S#.#G', '####.#.##', '.#...#...', '.#.#####.', '.........'], start: [4, 4], dir: 2,
+      text: 'La tortue part du milieu du labyrinthe ! La main gauche fonctionne aussi d’ici.',
+      hint: 'Même programme que pour la main gauche : où que tu partes, la règle marche.', sol: [MAIN_GAUCHE] },
+    { id: 'L21', title: 'Le très grand labyrinthe', tools: ['lmove', 'luntil', 'lif', 'leat'], limit: true, require: ['lab_until', 'lab_ifelse', 'lab_eat'],
+      rows: ['S#...#G....', '.#.#.#####.', '.#.#.#.....', '.#.#.#.####', '...#.#.#...', '####.#b#.#.', '.#...#...#.', '.#.###.###.', '.#b..#...#.', '.###.#####.', '.b.......b.'], start: [0, 0], dir: 2,
+      text: 'Le plus grand labyrinthe : quatre fraises 🍓 et un très long chemin. Tu as tout ce qu’il faut !',
+      hint: 'Dans la boucle : manger, puis la règle de la main gauche. Patience, la tortue a beaucoup à marcher.',
       sol: [until([LE, sinon('gauche', [LL, LF], [sinon('devant', [LF], [LR])])])] }
   ];
+  /* Ordre de jeu, du plus simple au plus difficile (les anciens identifiants gardent leur progression). */
+  var ORDER = ['L1', 'L2', 'L3', 'L13', 'L4', 'L14', 'L5', 'L6', 'L15', 'L16', 'L7', 'L8', 'L9', 'L10', 'L18', 'L11', 'L17', 'L19', 'L12', 'L20', 'L21'];
+  var ALL = {};
+  LEVELS.forEach(function (l) { ALL[l.id] = l; });
+  LEVELS = ORDER.map(function (id) { return ALL[id]; });
   var BY_ID = {};
   LEVELS.forEach(function (lv, i) {
-    lv.index = i; lv.label = lv.id.replace('L', 'L-'); lv.par = TB.dslCount(lv.sol);
+    lv.index = i; lv.label = 'L-' + (i + 1); lv.par = TB.dslCount(lv.sol);
     lv.h = lv.rows.length; lv.w = lv.rows[0].length; lv.berries = []; lv.goal = null;
     lv.rows.forEach(function (r, y) {
       for (var x = 0; x < r.length; x++) {
@@ -105,12 +153,16 @@
         return free(lv, x + DX[dd], y + DY[dd]);
       },
       arrivee: atGoal,
+      surFraise: function () {
+        for (var i = 0; i < lv.berries.length; i++) if (lv.berries[i][0] === x && lv.berries[i][1] === y && !eaten[key(x, y)]) return true;
+        return false;
+      },
       highlightBlock: function (id) { cmds.push({ t: 'hl', id: id }); }
     };
     var outcome = 'fin';
     try {
-      new Function('avancerCase', 'tournerGauche', 'tournerDroite', 'manger', 'chemin', 'arrivee', 'highlightBlock', 'loopBudget', code)(
-        api.avancerCase, api.tournerGauche, api.tournerDroite, api.manger, api.chemin, api.arrivee, api.highlightBlock, 5000);
+      new Function('avancerCase', 'tournerGauche', 'tournerDroite', 'manger', 'chemin', 'arrivee', 'surFraise', 'highlightBlock', 'loopBudget', code)(
+        api.avancerCase, api.tournerGauche, api.tournerDroite, api.manger, api.chemin, api.arrivee, api.surFraise, api.highlightBlock, 5000);
     } catch (e) {
       if (e === 'goal') outcome = 'goal';
       else if (e === 'mur') outcome = 'mur';
@@ -130,7 +182,7 @@
     for (var y = 0; y < lv.h; y++) {
       for (var x = 0; x < lv.w; x++) {
         if (lv.rows[y][x] === '#') continue;
-        c.fillStyle = dark ? '#43524a' : '#f6e8c6';
+        c.fillStyle = dark ? '#6a7c72' : '#f6e8c6';
         c.fillRect(ox + x * cell + 0.5, oy + y * cell + 0.5, cell - 1, cell - 1);
       }
     }
@@ -159,7 +211,7 @@
     App.renderHeader('laby', 'laby');
     var p = App.profile(), n = LEVELS.filter(function (l) { return done(p)[l.id]; }).length;
     var html = '<section class="series card"><div class="series-head"><h2>Série L : Labyrinthes</h2><span class="count">' + n + ' / ' + LEVELS.length + '</span></div>' +
-      '<p>Guide la tortue jusqu’à la laitue 🥬 : d’abord avancer et tourner, puis répéter « jusqu’à l’arrivée », puis les « si… sinon ».</p><div class="pills">';
+      '<p>Guide la tortue jusqu’à la laitue 🥬 : avancer et tourner, répéter « jusqu’à l’arrivée » ou « tant que », les « si… sinon », les fraises 🍓, puis de grands labyrinthes.</p><div class="pills">';
     LEVELS.forEach(function (l) {
       var rec = done(p)[l.id];
       html += '<a class="pill ' + (rec ? 'done' : '') + '" href="#/labyrinthe/' + l.id + '"><canvas class="thumb" width="104" height="104" data-id="' + l.id + '"></canvas>' +
@@ -316,7 +368,7 @@
     if (res.outcome === 'fin') { setMsg('Le programme est fini, mais la tortue n’est pas arrivée. Il manque des blocs !' + note, 'warn'); App.beep([220]); return; }
     var used = {}; ws.getAllBlocks(false).forEach(function (b) { used[b.type] = true; });
     var missing = (lv.require || []).filter(function (t) { return !used[t]; });
-    var NAMES = { controls_repeat_ext: 'répéter', lab_until: 'répéter jusqu’à l’arrivée', lab_if: 'si chemin', lab_ifelse: 'si… sinon', lab_eat: 'manger' };
+    var NAMES = { controls_repeat_ext: 'répéter', lab_until: 'répéter jusqu’à l’arrivée', lab_if: 'si chemin', lab_ifelse: 'si… sinon', lab_eat: 'manger', lab_while: 'répéter tant que chemin', lab_ifberry: 'si fraise ici' };
     if (missing.length) { setMsg('Arrivé ! Mais ce niveau demande d’utiliser : <b>' + missing.map(function (t) { return NAMES[t] || t; }).join('</b>, <b>') + '</b>.', 'warn'); App.beep([330]); return; }
     var blocks = TB.countBlocks(ws);
     if (lv.limit && blocks > lv.par + 1) { setMsg('Arrivé ! Mais tu as utilisé ' + blocks + ' blocs. Essaie avec ' + (lv.par + 1) + ' blocs maximum.', 'warn'); App.beep([330]); return; }

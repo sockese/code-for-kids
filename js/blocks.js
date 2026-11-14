@@ -132,7 +132,24 @@
   G.forBlock['lab_ifelse'] = function (b, gen) {
     return "if (chemin('" + b.getFieldValue('C') + "')) {\n" + gen.statementToCode(b, 'DO') + '} else {\n' + gen.statementToCode(b, 'ELSE') + '}\n';
   };
-  G.addReservedWords('avancerCase,tournerGauche,tournerDroite,manger,chemin,arrivee');
+  Blockly.defineBlocksWithJsonArray([
+    {
+      type: 'lab_while', message0: 'répéter tant que chemin %1', args0: [{ type: 'field_dropdown', name: 'C', options: COND_OPTIONS }],
+      message1: 'faire %1', args1: [{ type: 'input_statement', name: 'DO' }],
+      previousStatement: null, nextStatement: null, colour: 120, tooltip: 'Recommence tant que le chemin est libre.'
+    },
+    {
+      type: 'lab_ifberry', message0: 'si fraise ici 🍓', message1: 'faire %1', args1: [{ type: 'input_statement', name: 'DO' }],
+      previousStatement: null, nextStatement: null, colour: 45, tooltip: 'Fait les blocs seulement s’il y a une fraise sur la case.'
+    }
+  ]);
+  G.forBlock['lab_while'] = function (b, gen) {
+    return "while (chemin('" + b.getFieldValue('C') + "')) {\n" + gen.addLoopTrap(gen.statementToCode(b, 'DO'), b) + '}\n';
+  };
+  G.forBlock['lab_ifberry'] = function (b, gen) {
+    return 'if (surFraise()) {\n' + gen.statementToCode(b, 'DO') + '}\n';
+  };
+  G.addReservedWords('avancerCase,tournerGauche,tournerDroite,manger,chemin,arrivee,surFraise');
 
   /* Génère le code du programme : seulement le bloc de départ et les fonctions. */
   TB.generateCode = function (ws, withHighlight) {
@@ -187,7 +204,9 @@
     if (has('leat')) add('lab_eat');
     if (has('lrep')) add('controls_repeat_ext', { TIMES: num('cnt') });
     if (has('luntil')) add('lab_until');
+    if (has('lwhile')) add('lab_while');
     if (has('lif')) { add('lab_if'); add('lab_ifelse'); }
+    if (has('lberry')) add('lab_ifberry');
     if (has('fwd') || has('move')) {
       add('fr_forward', { N: num('len') });
       if (has('move')) { add('fr_right', { N: num('ang') }); add('fr_left', { N: num('ang') }); }
@@ -249,6 +268,8 @@
       case 'LL': return '<block type="lab_left">' + nxt + '</block>';
       case 'LR': return '<block type="lab_right">' + nxt + '</block>';
       case 'LE': return '<block type="lab_eat">' + nxt + '</block>';
+      case 'while': return '<block type="lab_while"><field name="C">' + s[1] + '</field><statement name="DO">' + chain(s[2]) + '</statement>' + nxt + '</block>';
+      case 'ifb': return '<block type="lab_ifberry"><statement name="DO">' + chain(s[1]) + '</statement>' + nxt + '</block>';
       case 'until': return '<block type="lab_until"><statement name="DO">' + chain(s[1]) + '</statement>' + nxt + '</block>';
       case 'if': return '<block type="lab_if"><field name="C">' + s[1] + '</field><statement name="DO">' + chain(s[2]) + '</statement>' + nxt + '</block>';
       case 'ifelse': return '<block type="lab_ifelse"><field name="C">' + s[1] + '</field><statement name="DO">' + chain(s[2]) +
@@ -313,6 +334,8 @@
         case 'set': case 'add': n += countExp(s[2]); break;
         case 'def': n += TB.dslCount(s[3]); break;
         case 'until': n += TB.dslCount(s[1]); break;
+        case 'while': n += TB.dslCount(s[2]); break;
+        case 'ifb': n += TB.dslCount(s[1]); break;
         case 'if': n += TB.dslCount(s[2]); break;
         case 'ifelse': n += TB.dslCount(s[2]) + TB.dslCount(s[3]); break;
         case 'call': (s[2] || []).forEach(function (a) { n += countExp(a); }); break;

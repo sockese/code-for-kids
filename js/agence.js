@@ -118,16 +118,40 @@
   function wheelHtml(k, showPreview, preview) {
     var step = 360 / 26, outer = '', inner = '';
     for (var i = 0; i < 26; i++) {
-      outer += '<text transform="rotate(' + (i * step).toFixed(2) + ') translate(0,-100)" text-anchor="middle" class="wo">' + ALPHA[i] + '</text>';
+      outer += '<text transform="rotate(' + (i * step).toFixed(2) + ') translate(0,-101)" text-anchor="middle" class="wo">' + ALPHA[i] + '</text>';
       inner += '<text transform="rotate(' + (i * step).toFixed(2) + ') translate(0,-70)" text-anchor="middle" class="wi">' + ALPHA[i] + '</text>';
     }
-    return '<div class="wheelbox"><svg viewBox="-120 -120 240 240" class="wheel"><circle r="116" class="wr1"/><circle r="84" class="wr2"/><circle r="54" class="wr3"/>' +
+    return '<div class="wheelbox"><svg viewBox="-120 -120 240 240" class="wheel"><circle r="118" class="wr1"/><circle r="84" class="wr2"/><circle r="52" class="wr3"/>' +
       '<g>' + outer + '</g><g transform="rotate(' + (-k * step).toFixed(2) + ')">' + inner + '</g>' +
-      '<text y="8" text-anchor="middle" class="wc">+' + k + '</text></svg>' +
+      '<text y="9" text-anchor="middle" class="wc">+' + k + '</text></svg>' +
       '<div class="wctl"><button class="btn small" data-act="wl">◀</button><span>Décalage : <b>' + k + '</b></span><button class="btn small" data-act="wr">▶</button></div>' +
-      (showPreview !== undefined ? '<div class="wprev"><button class="btn small" data-act="test">🔍 Tester ce décalage</button>' + (preview ? '<div class="wp">' + esc(preview) + '</div>' : '') + '</div>' : '') +
-      '<div class="wnote">Anneau du haut : lettre claire. Anneau du bas : lettre codée.</div></div>';
+      '<div class="wnote">Haut : lettre claire · Bas (rouge) : lettre codée</div>' +
+      (showPreview !== undefined ? '<div class="wprev"><button class="btn small" data-act="test">🔍 Tester ce décalage</button>' + (preview ? '<div class="wp">' + esc(preview) + '</div>' : '') + '</div>' : '') + '</div>';
   }
+
+  /* Tableaux de référence affichés à côté de l'énigme. */
+  function refHtml(kind) {
+    var title, items, cols = 3;
+    if (kind === 'symbols') {
+      title = '📖 Table des symboles'; cols = 4;
+      items = ALPHA.split('').map(function (c, i) { return '<span class="rc"><b>' + c + '</b>' + SYMBOLS[i] + '</span>'; });
+    } else if (kind === 'bin') {
+      title = '💾 Lettre · numéro · binaire'; cols = 3;
+      items = ALPHA.split('').map(function (c, i) { return '<span class="rc"><b>' + c + '</b><i>' + (i + 1) + '</i>' + letterBits(c) + '</span>'; });
+    } else if (kind === 'morse') {
+      title = '📡 Table du morse'; cols = 3;
+      items = ALPHA.split('').map(function (c) { return '<span class="rc"><b>' + c + '</b>' + MORSE[c].replace(/\./g, '•').replace(/-/g, '–') + '</span>'; });
+    } else if (kind === 'atbash') {
+      title = '🪞 Alphabet inversé'; cols = 4;
+      items = ALPHA.split('').map(function (c) { return '<span class="rc"><b>' + c + '</b>' + atbash(c) + '</span>'; });
+    } else {
+      title = '🧩 Grille secrète';
+      return '<div class="ref"><h4>' + title + '</h4><table class="poly"><tr><th></th>' + [1, 2, 3, 4, 5].map(function (c) { return '<th>' + c + '</th>'; }).join('') + '</tr>' +
+        POLY.map(function (r, i) { return '<tr><th>' + (i + 1) + '</th>' + r.split('').map(function (c) { return '<td>' + c + '</td>'; }).join('') + '</tr>'; }).join('') + '</table><p class="small">I et J partagent la même case.</p></div>';
+    }
+    return '<div class="ref"><h4>' + title + '</h4><div class="rgrid c' + cols + '">' + items.join('') + '</div></div>';
+  }
+
   function cardsHtml(values, bits, interactive) {
     return '<div class="cards">' + values.map(function (v, i) {
       return '<button class="bcard ' + (bits[i] ? 'on' : 'off') + '" ' + (interactive ? 'data-act="card" data-i="' + i + '"' : 'disabled') + '><b>' + v + '</b><span>' + (bits[i] ? '1' : '0') + '</span></button>';
@@ -142,14 +166,14 @@
   var KINDS = {
     /* ---- symboles ---- */
     symDec: {
-      input: 'letters', icon: '🔍', tool: 'symbols',
+      input: 'letters', icon: '🔍', tool: 'symbols', side: function () { return refHtml('symbols'); },
       build: function (m) { return letterInst(text(m.pool)); },
       panel: function (inst, st) { return tokenRow(toSymbols(inst.plain).split(' ').map(function (w) { return '<span class="tokword">' + w + '</span>'; })) + '<div class="answer" id="ans">' + slots(inst, st.typed) + '</div>'; },
       blank: typedBlank, solve: typedSolve, check: typedCheck,
       hint: 'Ouvre la 📖 table des symboles : trouve chaque dessin dans la table et note sa lettre.'
     },
     symEnc: {
-      input: 'symbols', icon: '✍️', tool: 'symbols',
+      input: 'symbols', icon: '✍️', tool: 'symbols', side: function () { return refHtml('symbols'); },
       build: function (m) { var p = text(m.pool); return { plain: p, expected: norm(p) }; },
       panel: function (inst, st) { return bigText(inst.plain) + '<div class="answer symans" id="ans">' + (st.seq.length ? st.seq.map(function (c) { return SYMBOLS[ALPHA.indexOf(c)]; }).join(' ') : '<span class="ph">Compose ton message codé avec les dessins ci-dessous</span>') + '</div>'; },
       blank: function () { return { seq: [] }; }, solve: function (inst, st) { st.seq = inst.expected.split(''); },
@@ -161,9 +185,10 @@
       input: 'letters', icon: '🎡', tool: 'caesar',
       build: function (m) { var k = m.shift || between(m.kmin, m.kmax), p = text(m.pool); return letterInst(p, { k: k, cipher: caesar(norm(p).length ? p : p, k), known: m.known !== false }); },
       panel: function (inst, st) {
-        return '<div class="cols"><div>' + bigText(inst.cipher) + (inst.known ? '<div class="keyinfo">🔑 Clé : décalage de <b>' + inst.k + '</b></div>' : '<div class="keyinfo">🔑 Clé inconnue : tourne la roue et teste !</div>') +
-          '<div class="answer" id="ans">' + slots(inst, st.typed) + '</div></div>' + wheelHtml(st.w, inst.known ? undefined : true, st.preview ? caesar(inst.cipher, -st.w) : '') + '</div>';
+        return bigText(inst.cipher) + (inst.known ? '<div class="keyinfo">🔑 Clé : décalage de <b>' + inst.k + '</b></div>' : '<div class="keyinfo">🔑 Clé inconnue : tourne la roue et teste !</div>') +
+          '<div class="answer" id="ans">' + slots(inst, st.typed) + '</div>';
       },
+      sideKind: 'wheel', side: function (inst, st) { return wheelHtml(st.w, inst.known ? undefined : true, st.preview ? caesar(inst.cipher, -st.w) : ''); },
       blank: function () { return { typed: '', w: 0, preview: false }; }, solve: typedSolve, check: typedCheck,
       hint: 'Pour décoder : trouve la lettre codée sur l’anneau du bas, et lis la vraie lettre sur l’anneau du haut. Mets la roue sur la bonne clé !'
     },
@@ -171,8 +196,9 @@
       input: 'letters', icon: '🎡', tool: 'caesar',
       build: function (m) { var k = between(m.kmin, m.kmax), p = text(m.pool); return { plain: p, k: k, expected: norm(caesar(p, k)), lens: wordsLens(p) }; },
       panel: function (inst, st) {
-        return '<div class="cols"><div>' + bigText(inst.plain) + '<div class="keyinfo">🔑 Clé : décalage de <b>' + inst.k + '</b></div><div class="answer" id="ans">' + slots(inst, st.typed) + '</div></div>' + wheelHtml(st.w) + '</div>';
+        return bigText(inst.plain) + '<div class="keyinfo">🔑 Clé : décalage de <b>' + inst.k + '</b></div><div class="answer" id="ans">' + slots(inst, st.typed) + '</div>';
       },
+      sideKind: 'wheel', side: function (inst, st) { return wheelHtml(st.w); },
       blank: function () { return { typed: '', w: 0 }; }, solve: typedSolve, check: typedCheck,
       hint: 'Pour coder : trouve la vraie lettre sur l’anneau du haut, et lis la lettre codée sur l’anneau du bas.'
     },
@@ -180,8 +206,9 @@
       input: 'none', icon: '🕵️', tool: 'caesar', action: '✅ C’est ce décalage !',
       build: function (m) { var k = between(m.kmin, m.kmax), p = text(m.pool); return { plain: p, k: k, cipher: caesar(p, k) }; },
       panel: function (inst, st) {
-        return '<div class="cols"><div>' + bigText(inst.cipher) + '<div class="keyinfo">🔑 Quel décalage a été utilisé ? Teste-les avec la roue : le bon donne des mots qui ont un sens.</div></div>' + wheelHtml(st.w, true, st.preview ? caesar(inst.cipher, -st.w) : '') + '</div>';
+        return bigText(inst.cipher) + '<div class="keyinfo">🔑 Quel décalage a été utilisé ? Teste-les avec la roue : le bon donne des mots qui ont un sens.</div>';
       },
+      sideKind: 'wheel', side: function (inst, st) { return wheelHtml(st.w, true, st.preview ? caesar(inst.cipher, -st.w) : ''); },
       blank: function () { return { w: 0, preview: false }; }, solve: function (inst, st) { st.w = inst.k; },
       check: function (inst, st) { var ok = st.w === inst.k; return { ok: ok, detail: ok ? '' : 'Ce décalage ne donne pas un message qui a du sens. Essaie un autre !' }; },
       hint: 'Appuie sur « Tester ce décalage » pour chaque position de la roue, jusqu’à lire de vrais mots.'
@@ -213,7 +240,7 @@
     },
     /* ---- lettres en binaire ---- */
     letEnc: {
-      input: 'none', icon: '💾', tool: 'bin', action: '✅ Envoyer',
+      input: 'none', icon: '💾', tool: 'bin', action: '✅ Envoyer', side: function () { return refHtml('bin'); },
       build: function (m) {
         var w = m.name ? (norm(App.profile ? App.data.current : '').slice(0, 6) || 'AGENT') : (m.pool ? pick(POOLS[m.pool]) : ALPHA[rnd(16)]);
         return { plain: w, letters: w.split('') };
@@ -232,7 +259,7 @@
       hint: 'Trouve le numéro de la lettre (A = 1…), puis allume les cartes 16, 8, 4, 2, 1 qui le forment.'
     },
     letDec: {
-      input: 'letters', icon: '🔓', tool: 'bin',
+      input: 'letters', icon: '🔓', tool: 'bin', side: function () { return refHtml('bin'); },
       build: function (m) { var w = m.one ? ALPHA[rnd(16)] : (m.pool ? pick(POOLS[m.pool]) : 'AGENT'); return { plain: w, expected: w, lens: [w.length] }; },
       panel: function (inst, st) {
         return '<div class="target">Décode le message binaire</div><div class="rows rowsrow">' + inst.plain.split('').map(function (c, r) { return bitRowHtml(r, letterBits(c), null, false, r === 0); }).join('') +
@@ -243,7 +270,7 @@
     },
     /* ---- morse, miroir, grille ---- */
     morseDec: {
-      input: 'letters', icon: '📡', tool: 'morse',
+      input: 'letters', icon: '📡', tool: 'morse', side: function () { return refHtml('morse'); },
       build: function (m) { var w = m.fixed || text(m.pool); return { plain: w, expected: w, lens: [w.length] }; },
       panel: function (inst, st) {
         return '<div class="tokens">' + inst.plain.split('').map(function (c) { return '<span class="morse">' + MORSE[c].replace(/\./g, '•').replace(/-/g, '–') + '</span>'; }).join('') + '</div>' +
@@ -253,7 +280,7 @@
       hint: 'Ouvre la 📖 table du morse : • est un point court, – est un trait long.'
     },
     morseListen: {
-      input: 'letters', icon: '🎧', tool: 'morse',
+      input: 'letters', icon: '🎧', tool: 'morse', side: function () { return refHtml('morse'); },
       build: function (m) { var w = text(m.pool); return { plain: w, expected: w, lens: [w.length] }; },
       panel: function (inst, st) {
         return '<div class="target">Écoute le message (court = point, long = trait)</div><button class="btn go" data-act="play">🔊 Écouter</button>' +
@@ -263,7 +290,7 @@
       hint: 'Écoute plusieurs fois, note les sons courts et longs, puis cherche-les dans la 📖 table du morse.'
     },
     morseEnc: {
-      input: 'morse', icon: '💡', tool: 'morse',
+      input: 'morse', icon: '💡', tool: 'morse', side: function () { return refHtml('morse'); },
       build: function (m) { var w = text(m.pool); return { plain: w, expected: w.split('').map(function (c) { return MORSE[c]; }) }; },
       panel: function (inst, st) {
         return bigText(inst.plain) + '<div class="answer morseans" id="ans">' + (st.groups.join('') === '' && st.groups.length === 1 ? '<span class="ph">Tape sur • et – (puis « lettre suivante »)</span>' :
@@ -278,7 +305,7 @@
       hint: 'Une lettre à la fois : tape les • et – de la lettre, puis « lettre suivante ».'
     },
     polyDec: {
-      input: 'letters', icon: '🧩', tool: 'poly',
+      input: 'letters', icon: '🧩', tool: 'poly', side: function () { return refHtml('poly'); },
       build: function (m) { var w = text(m.pool); return { plain: w, expected: w, lens: [w.length] }; },
       panel: function (inst, st) {
         return '<div class="target">Chaque lettre est une case de la grille : ligne puis colonne</div><div class="tokens">' + inst.plain.split('').map(function (c) { return '<span class="morse">' + polyCode(c) + '</span>'; }).join('') +
@@ -288,7 +315,7 @@
       hint: 'Ouvre la 📖 grille. « 23 » veut dire ligne 2, colonne 3.'
     },
     textDec: {
-      input: 'letters', icon: '🪞', tool: 'textDec',
+      input: 'letters', icon: '🪞', tool: 'textDec', side: function (inst) { return inst.cipher === 'atbash' ? refHtml('atbash') : ''; },
       build: function (m) { var p = text(m.pool), shown = m.cipher === 'mirror' ? reverseText(p) : atbash(p); return letterInst(p, { shown: shown, cipher: m.cipher }); },
       panel: function (inst, st) {
         return '<div class="target">' + (inst.cipher === 'mirror' ? 'Le message est écrit comme dans un miroir' : 'L’alphabet est inversé : A↔Z, B↔Y…') + '</div>' + bigText(inst.shown) +
@@ -299,7 +326,7 @@
     },
     /* ---- opérations spéciales ---- */
     dbl: {
-      input: 'letters', icon: '🧬', tool: 'bin',
+      input: 'letters', icon: '🧬', tool: 'bin', side: function () { return refHtml('bin'); },
       build: function (m) { var w = text(m.pool), k = between(1, 5); return { plain: w, k: k, cipher: caesar(w, k), expected: w, lens: [w.length] }; },
       panel: function (inst, st) {
         return '<div class="target">Double code : 1) du binaire aux lettres, 2) décale de <b>' + inst.k + '</b> pas en arrière</div><div class="rows rowsrow">' +
@@ -312,9 +339,10 @@
       input: 'letters', icon: '📊', tool: 'freq',
       build: function (m) { var k = between(3, 11), p = text(m.pool); return letterInst(p, { k: k, cipher: caesar(p, k) }); },
       panel: function (inst, st) {
-        return '<div class="cols"><div>' + bigText(inst.cipher) + '<div class="keyinfo">🔑 Clé inconnue ! Indice : la lettre la plus fréquente est sûrement un E (outil 📊).</div>' +
-          '<div class="answer" id="ans">' + slots(inst, st.typed) + '</div></div>' + wheelHtml(st.w, true, st.preview ? caesar(inst.cipher, -st.w) : '') + '</div>';
+        return bigText(inst.cipher) + '<div class="keyinfo">🔑 Clé inconnue ! Indice : la lettre la plus fréquente est sûrement un E (outil 📊).</div>' +
+          '<div class="answer" id="ans">' + slots(inst, st.typed) + '</div>';
       },
+      sideKind: 'wheel', side: function (inst, st) { return wheelHtml(st.w, true, st.preview ? caesar(inst.cipher, -st.w) : ''); },
       blank: function () { return { typed: '', w: 0, preview: false }; }, solve: typedSolve, check: typedCheck,
       hint: 'Ouvre l’outil 📊 : la lettre la plus fréquente du message codé remplace sûrement le E. Compte le décalage, puis teste-le sur la roue.'
     },
@@ -454,10 +482,10 @@
       '<section class="level mission"><div class="level-head"><a class="btn small" href="#/agence">← Missions</a><span class="badge">' + m.id + (m.boss ? ' ★' : '') + '</span><h2>' + esc(m.title) + '</h2><span class="spacer"></span>' +
       (prev ? '<a class="btn small" href="#/agence/mission/' + prev.id + '">◀</a>' : '') + (next ? '<a class="btn small" href="#/agence/mission/' + next.id + '">▶</a>' : '') + '</div>' +
       '<div class="instruction">' + (m.n === 1 ? '<b>' + esc(S.title) + ' — </b>' + esc(S.intro) + ' ' : '') + '🗣️ Centrale : ' + esc(m.brief) + '</div>' +
-      '<div class="m-main"><div class="m-panel" id="mp"></div>' +
+      '<div class="m-main"><div class="m-left"><div class="m-panel" id="mp"></div>' +
       '<div class="m-input" id="mi">' + (K.input === 'letters' ? keyboardHtml() : K.input === 'digits' ? digitsHtml() : K.input === 'symbols' ? symbolsHtml() : K.input === 'morse' ? morseHtml() : '') + '</div>' +
       '<div class="m-actions"><button class="btn go" id="check">' + (K.action || '✅ Vérifier') + '</button><button class="btn small" id="hint">💡 Indice</button>' +
-      '<button class="btn small" id="tool">🧰 Outil</button><button class="btn small" id="sol" title="Pour les adultes">👀 Solution</button></div></div></section>';
+      '<button class="btn small" id="tool">🧰 Outil</button><button class="btn small" id="sol" title="Pour les adultes">👀 Solution</button></div></div><div class="m-right" id="mr"></div></div></section>';
     render();
     $('#view').addEventListener('click', onClick);
     cur.onKey = function (e) {
@@ -480,6 +508,12 @@
   function render() {
     var mp = $('#mp'); if (!mp || !cur) return;
     mp.innerHTML = cur.K.panel(cur.inst, cur.st) + '<div class="msg" id="msg"></div>';
+    var mr = $('#mr');
+    if (mr) {
+      var side = cur.K.side ? cur.K.side(cur.inst, cur.st) : '';
+      mr.innerHTML = side; mr.style.display = side ? '' : 'none';
+      mr.className = 'm-right ' + (cur.K.sideKind === 'wheel' ? 'wheel-side' : 'ref-side');
+    }
     $('#msg').onclick = function () { toast('', ''); };
   }
   function toast(t, kind) { var m = $('#msg'); if (!m) return; m.className = 'msg' + (t ? ' show ' + kind : ''); m.innerHTML = t; }

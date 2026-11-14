@@ -64,3 +64,7 @@ Une solution écrite en blocs par niveau ; la page `#test` vérifie qu'elle atte
 1. Est-ce bien l'extension attendue (labyrinthes à la Blockly Games Maze) ? Sinon, l'autre piste « Blockly Games Turtle » est ce que fait déjà Tortue Blocs.
 2. Une laitue 🥬 et des fraises 🍓, ou un autre décor (maison, fromage, etc.) ?
 3. 12 niveaux, c'est bien ?
+
+## Évolutions (v5)
+- Niveaux 12 → **21**, ordre de difficulté croissante ; nouveaux blocs « répéter tant que chemin… » et « si fraise ici » ; main droite, départ au centre, très grand labyrinthe.
+- Agence Z : tables de référence affichées à côté de l énigme (symboles, binaire, morse, grille, alphabet inversé) ; roue de César agrandie.

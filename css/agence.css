@@ -30,7 +30,25 @@
 .target { font-size: 18px; font-weight: 700; } .target b { color: var(--blue); font-size: 26px; }
 .keyinfo { color: var(--muted); font-size: 15px; margin: 6px 0; }
 .wheelbox { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-.wheel { width: clamp(170px, 30vh, 250px); height: auto; }
+.wheel { width: min(44vw, 50vh, 440px); min-width: 220px; height: auto; }
+.mission .m-main { flex-direction: row; gap: 10px; }
+.m-left { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 6px; }
+.m-right { flex: 0 0 auto; min-height: 0; overflow: auto; background: var(--surface); border: 2px solid var(--line); border-radius: var(--radius); padding: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.m-right.ref-side { width: clamp(230px, 31vw, 340px); justify-content: flex-start; }
+.m-right.wheel-side { padding: 6px 10px; }
+.ref h4 { margin: 0 0 6px; font-size: 15px; text-align: center; }
+.rgrid { display: grid; gap: 4px; } .rgrid.c3 { grid-template-columns: repeat(3, 1fr); } .rgrid.c4 { grid-template-columns: repeat(4, 1fr); }
+.rc { background: var(--bg); border-radius: 8px; padding: 2px 4px; font-size: 18px; display: flex; gap: 5px; justify-content: center; align-items: center; white-space: nowrap; }
+.rc b { font-size: 12px; color: var(--blue); min-width: 12px; } .rc i { font-style: normal; font-size: 11px; color: var(--muted); }
+.rgrid.c3 .rc { font-size: clamp(15px, 2.6vh, 19px); padding: 5px 4px; }
+.rgrid.c4 .rc { font-size: clamp(24px, 4.2vh, 32px); padding: 4px 2px; }
+.rgrid.c4 .rc b { font-size: 13px; }
+.ref .poly th, .ref .poly td { width: 40px; height: 36px; font-size: 18px; }
+@media (max-width: 760px) {
+  .mission .m-main { flex-direction: column; }
+  .m-right.ref-side { width: auto; max-height: 36vh; }
+  .wheel { width: min(60vw, 34vh); min-width: 160px; }
+}
 .wr1 { fill: var(--hover); stroke: var(--line); stroke-width: 2; } .wr2 { fill: var(--surface); stroke: var(--line); stroke-width: 2; } .wr3 { fill: var(--bg); stroke: var(--line); stroke-width: 1; }
 .wo { font-size: 13px; font-weight: 800; fill: var(--ink); } .wi { font-size: 13px; font-weight: 800; fill: var(--red); }
 .wc { font-size: 22px; font-weight: 800; fill: var(--blue); }
