@@ -211,6 +211,59 @@
       dispensers: [{ x: 5, y: 0, n: 1, ch: 'vert' }], goal: { n: 1, exit: true }, kind: 'robot', parts: { ramp: 2 }, tools: ['rmove', 'lrep', 'rpress'], tmax: 40,
       text: 'Le bouton vert lance une bille depuis le distributeur. Guide-la jusqu’au seau avec des rampes, puis fais sortir Brickbot !',
       hint: 'Programme : avancer 3 fois, appuyer, puis avancer jusqu’à la sortie. Pose les rampes pour que la bille atteigne le seau.'
+    }),
+
+    /* ---------- monde 5 (suite) : tous les blocs de Brickbot ---------- */
+    L('5-7', 5, 'Tant que', {
+      robotSol: [['while', 'devant', [['LF']]], ['RP']],
+      map: rows({ 6: '..........#.' }), robot: { x: 0, y: 6, dir: 1 }, buttons: [{ x: 9, y: 6, ch: 'rouge' }], lamps: [{ x: 9, y: 4, cond: { any: ['rouge'] } }],
+      goal: { lamp: true }, parts: {}, kind: 'robot', tools: ['rmove', 'lwhile', 'rpress'], limit: true, require: ['lab_while', 'rob_press'],
+      text: 'Brickbot ne sait pas combien de cases il y a jusqu’au mur. Avec « répéter tant que chemin devant », il avance tout seul, puis appuie sur le bouton pour allumer la lampe.',
+      hint: 'Répéter tant que chemin devant : avancer. Puis appuyer sur le bouton.'
+    }),
+    L('5-8', 5, 'Bouton ici ?', {
+      robotSol: [['repeat', 10, [['rif', 'bouton', [['RP']]], ['LF']]]],
+      map: rows({ 6: '..........X.' }), robot: { x: 0, y: 6, dir: 1 }, buttons: [{ x: 2, y: 6, ch: 'rouge' }, { x: 5, y: 6, ch: 'bleu' }, { x: 7, y: 6, ch: 'vert' }],
+      doors: [3, 4, 5, 6].map(function (y) { return { x: 9, y: y, cond: { all: ['rouge', 'bleu', 'vert'] } }; }),
+      goal: { exit: true }, parts: {}, kind: 'robot', tools: ['rmove', 'lrep', 'rpress', 'rif'], limit: true, require: ['controls_repeat_ext', 'rob_if', 'rob_press'],
+      text: 'Trois boutons de couleurs différentes ouvrent la grande porte. Brickbot doit appuyer sur chacun en passant dessus, sans se tromper de case !',
+      hint: 'Répéter 10 fois : [ si bouton ici → appuyer ], puis avancer.'
+    }),
+    L('5-9', 5, 'Aller-retour', {
+      robotSol: [['while', 'devant', [['LF']]], ['RP'], ['RT'], ['while', 'devant', [['LF']]], ['RP']],
+      map: rows({ 6: '#..........#' }), robot: { x: 5, y: 6, dir: 1 }, buttons: [{ x: 10, y: 6, ch: 'bleu' }, { x: 1, y: 6, ch: 'rouge' }], lamps: [{ x: 5, y: 4, cond: { all: ['rouge', 'bleu'] } }],
+      goal: { lamp: true }, parts: {}, kind: 'robot', tools: ['rmove', 'rturn', 'rpress', 'lwhile'], limit: true, require: ['lab_while', 'rob_turn', 'rob_press'],
+      text: 'Un bouton à chaque bout du couloir : la lampe ne s’allume que si les deux sont enfoncés (ET) !',
+      hint: 'Aller jusqu’au mur de droite (tant que chemin devant), appuyer, demi-tour, aller jusqu’au mur de gauche, appuyer.'
+    }),
+    L('5-10', 5, 'Patience', {
+      robotSol: [['repeat', 2, [['LF']]], ['repeat', 3, [['RW']]], ['repeat', 4, [['LF']]]],
+      map: rows({ 6: '......X.....' }), robot: { x: 0, y: 6, dir: 1 }, tmax: 30,
+      doors: [3, 4, 5, 6].map(function (y) { return { x: 3, y: y, cond: { at: [3.5, 60] } }; }),
+      goal: { exit: true }, parts: {}, kind: 'robot', tools: ['rmove', 'lrep', 'rwait'], limit: true, require: ['controls_repeat_ext', 'rob_wait'],
+      text: 'La porte ne s’ouvre que 3,5 secondes après le départ. Brickbot doit savoir attendre !',
+      hint: 'Avancer 2 fois (il arrive devant la porte), attendre 3 secondes, puis avancer 4 fois.'
+    }),
+    L('5-11', 5, 'Une porte, un bouton', {
+      robotSol: [['until', [['rif', 'bouton', [['RP']]], ['rif', 'devant', [['LF']]]]]],
+      map: rows({ 6: '..........X.' }), robot: { x: 0, y: 6, dir: 1 },
+      buttons: [{ x: 2, y: 6, ch: 'rouge' }, { x: 5, y: 6, ch: 'bleu' }, { x: 8, y: 6, ch: 'vert' }],
+      doors: [3, 4, 5, 6].map(function (y) { return { x: 3, y: y, cond: { any: ['rouge'] } }; })
+        .concat([3, 4, 5, 6].map(function (y) { return { x: 6, y: y, cond: { any: ['bleu'] } }; }))
+        .concat([3, 4, 5, 6].map(function (y) { return { x: 9, y: y, cond: { any: ['vert'] } }; })),
+      goal: { exit: true }, parts: {}, kind: 'robot', tools: ['rmove', 'luntil', 'rpress', 'rif'], limit: true, require: ['lab_until', 'rob_if', 'rob_press'],
+      text: 'Trois portes, trois boutons : un programme unique doit marcher quelle que soit la distance !',
+      hint: 'Répéter jusqu’à l’arrivée : [ si bouton ici → appuyer ], [ si chemin devant → avancer ].'
+    }),
+    L('5-12', 5, 'Attends la bille', {
+      robotSol: [['repeat', 2, [['LF']]], ['RP'], ['repeat', 3, [['RW']]], ['repeat', 3, [['LF']]]],
+      sol: [['ramp', 8, 2, 0], ['sensor', 9, 6, 1]],
+      map: rows({ 3: '........#...', 6: '.X..........' }), robot: { x: 6, y: 6, dir: -1 }, buttons: [{ x: 4, y: 6, ch: 'rouge' }],
+      dispensers: [{ x: 8, y: 0, n: 1, ch: 'rouge' }], tmax: 40,
+      doors: [3, 4, 5, 6].map(function (y) { return { x: 2, y: y, cond: { any: ['bleu'] } }; }),
+      goal: { exit: true }, parts: { ramp: 2, sensor: 1 }, kind: 'robot', tools: ['rmove', 'lrep', 'rpress', 'rwait'], tmax: 40,
+      text: 'Le bouton rouge lâche une bille. Un capteur bleu, touché par la bille, ouvre la porte de la sortie. Construis le chemin de la bille et programme Brickbot (il devra attendre !).',
+      hint: 'Rampe sur le mur à droite pour envoyer la bille vers le sol, capteur bleu sur son chemin. Brickbot : avancer 2 fois, appuyer, attendre 3 secondes, avancer 3 fois.'
     })
   ];
 

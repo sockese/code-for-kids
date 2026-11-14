@@ -106,9 +106,35 @@
       text: 'Le plus grand labyrinthe : quatre fraises 🍓 et un très long chemin. Tu as tout ce qu’il faut !',
       hint: 'Dans la boucle : manger, puis la règle de la main gauche. Patience, la tortue a beaucoup à marcher.',
       sol: [until([LE, sinon('gauche', [LL, LF], [sinon('devant', [LF], [LR])])])] }
+    ,
+    /* ---------- niveaux ajoutés (v11) : « tant que », « si fraise ici » et leurs combinaisons ---------- */
+    { id: 'L22', title: 'La rangée de fraises', tools: ['lmove', 'lwhile', 'lberry', 'leat'], limit: true, require: ['lab_while', 'lab_ifberry', 'lab_eat'],
+      rows: ['##########', 'S.b.b..bbG', '##########'], start: [0, 1], dir: 1,
+      text: 'Un couloir plein de fraises 🍓. Avec « tant que chemin devant » et « si fraise ici », deux blocs suffisent à tout ramasser !',
+      hint: 'Répéter tant que chemin devant : [ si fraise ici → manger ], puis avancer.', sol: [tant('devant', [siFraise([LE]), LF])] },
+    { id: 'L23', title: 'Escalier fruité', tools: ['lmove', 'luntil', 'lberry', 'leat'], limit: true, require: ['lab_until', 'lab_ifberry', 'lab_eat'],
+      rows: ['###.G', '##.b#', '#.b##', '.b###', 'S####'], start: [0, 4], dir: 0,
+      text: 'Les fraises sont posées sur les marches de l’escalier. Ramasse-les toutes en montant !',
+      hint: 'Dans la boucle : avancer, tourner à droite, avancer, si fraise ici → manger, tourner à gauche.',
+      sol: [until([LF, LR, LF, siFraise([LE]), LL])] },
+    { id: 'L24', title: 'Couloirs gourmands', tools: ['lmove', 'luntil', 'lwhile', 'lif', 'lberry', 'leat'], limit: true, require: ['lab_until', 'lab_while', 'lab_ifelse', 'lab_ifberry'],
+      rows: ['#######G', '#######b', '#######.', '####..b.', '####b###', '####.###', 'S.b..###'], start: [0, 6], dir: 1,
+      text: 'Les couloirs du niveau 10, mais avec des fraises 🍓 un peu partout, même dans les coins !',
+      hint: 'Dans la boucle : répéter tant que chemin devant [ si fraise ici → manger ; avancer ], puis encore « si fraise ici → manger » (pour le coin), puis si chemin à gauche → gauche, sinon → droite.',
+      sol: [until([tant('devant', [siFraise([LE]), LF]), siFraise([LE]), sinon('gauche', [LL], [LR])])] },
+    { id: 'L25', title: 'La spirale', tools: ['lmove', 'luntil', 'lwhile'], limit: true, require: ['lab_until', 'lab_while'],
+      rows: ['.........', '.#######.', '.#.....#.', '.#.###.#.', '.#.###.#.', '.#.###.#.', '.#..G#.#.', '.#####.#.', '.......#S'], start: [8, 8], dir: 0,
+      text: 'Une spirale ! Les couloirs n’ont pas la même longueur : avance tant que tu peux, puis tourne à gauche.',
+      hint: 'Répéter jusqu’à l’arrivée : [ répéter tant que chemin devant (avancer), puis tourner à gauche ].',
+      sol: [until([tant('devant', [LF]), LL])] },
+    { id: 'L26', title: 'Main droite et fraises', tools: ['lmove', 'luntil', 'lif', 'lberry', 'leat'], limit: true, require: ['lab_until', 'lab_ifelse', 'lab_ifberry'],
+      rows: ['S..#.b...', '##.#.###b', '.#...#...', '.#####.##', '.#.....#b', '.#.#####.', '.#.#.....', '.#.#.###.', '....b#G..'], start: [0, 0], dir: 1,
+      text: 'Un grand labyrinthe, quatre fraises 🍓, et cette fois la main droite sur le mur !',
+      hint: 'Dans la boucle : si fraise ici → manger. Puis : si chemin à droite → droite et avancer, sinon si chemin devant → avancer, sinon → gauche.',
+      sol: [until([siFraise([LE]), sinon('droite', [LR, LF], [sinon('devant', [LF], [LL])])])] }
   ];
   /* Ordre de jeu, du plus simple au plus difficile (les anciens identifiants gardent leur progression). */
-  var ORDER = ['L1', 'L2', 'L3', 'L13', 'L4', 'L14', 'L5', 'L6', 'L15', 'L16', 'L7', 'L8', 'L9', 'L10', 'L18', 'L11', 'L17', 'L19', 'L12', 'L20', 'L21'];
+  var ORDER = ['L1', 'L2', 'L3', 'L13', 'L4', 'L14', 'L5', 'L6', 'L15', 'L16', 'L7', 'L8', 'L9', 'L10', 'L18', 'L11', 'L17', 'L22', 'L19', 'L23', 'L12', 'L20', 'L24', 'L25', 'L21', 'L26'];
   var ALL = {};
   LEVELS.forEach(function (l) { ALL[l.id] = l; });
   LEVELS = ORDER.map(function (id) { return ALL[id]; });

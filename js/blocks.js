@@ -165,6 +165,7 @@
   Blockly.defineBlocksWithJsonArray([
     { type: 'rob_turn', message0: 'faire demi-tour ↺', previousStatement: null, nextStatement: null, colour: 210, tooltip: 'Brickbot se retourne.' },
     { type: 'rob_press', message0: 'appuyer sur le bouton', previousStatement: null, nextStatement: null, colour: 20, tooltip: 'Appuie sur le bouton qui est sous Brickbot.' },
+    { type: 'rob_wait', message0: 'attendre 1 seconde ⏱', previousStatement: null, nextStatement: null, colour: 20, tooltip: 'Brickbot ne bouge pas pendant une seconde.' },
     {
       type: 'rob_if', message0: 'si %1', args0: [{ type: 'field_dropdown', name: 'C', options: ROB_COND }],
       message1: 'faire %1', args1: [{ type: 'input_statement', name: 'DO' }],
@@ -180,6 +181,7 @@
   function robCond(b) { return b.getFieldValue('C') === 'bouton' ? 'surBouton()' : "chemin('devant')"; }
   G.forBlock['rob_turn'] = function () { return 'faireDemiTour();\n'; };
   G.forBlock['rob_press'] = function () { return 'appuyer();\n'; };
+  G.forBlock['rob_wait'] = function () { return 'attendre();\n'; };
   G.forBlock['rob_if'] = function (b, gen) { return 'if (' + robCond(b) + ') {\n' + gen.statementToCode(b, 'DO') + '}\n'; };
   G.forBlock['rob_ifelse'] = function (b, gen) { return 'if (' + robCond(b) + ') {\n' + gen.statementToCode(b, 'DO') + '} else {\n' + gen.statementToCode(b, 'ELSE') + '}\n'; };
   G.addReservedWords('avancerCase,tournerGauche,tournerDroite,manger,chemin,arrivee,surFraise,faireDemiTour,appuyer,attendre,surBouton');
@@ -240,6 +242,7 @@
     if (has('rmove')) add('lab_forward');
     if (has('rturn')) add('rob_turn');
     if (has('rpress')) add('rob_press');
+    if (has('rwait')) add('rob_wait');
     if (has('rif')) { add('rob_if'); add('rob_ifelse'); }
     if (has('lwhile')) add('lab_while');
     if (has('lif')) { add('lab_if'); add('lab_ifelse'); }
@@ -313,6 +316,7 @@
       case 'LE': return '<block type="lab_eat">' + nxt + '</block>';
       case 'RT': return '<block type="rob_turn">' + nxt + '</block>';
       case 'RP': return '<block type="rob_press">' + nxt + '</block>';
+      case 'RW': return '<block type="rob_wait">' + nxt + '</block>';
       case 'rif': return '<block type="rob_if"><field name="C">' + s[1] + '</field><statement name="DO">' + chain(s[2]) + '</statement>' + nxt + '</block>';
       case 'rifelse': return '<block type="rob_ifelse"><field name="C">' + s[1] + '</field><statement name="DO">' + chain(s[2]) +
         '</statement><statement name="ELSE">' + chain(s[3]) + '</statement>' + nxt + '</block>';

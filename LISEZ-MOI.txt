@@ -9,13 +9,13 @@ La progression est sauvegardée dans le navigateur, par prénom. Points et rang 
 
 ACTIVITÉS
 - 🐢 Tortue — Dessins : 88 niveaux en 9 séries (A à I, dont « Couleurs et crayon ») + mode création libre. Blocs Blockly en français.
-- 🧭 Tortue — Labyrinthes : 21 niveaux (avancer, tourner, répéter, jusqu à l arrivée, tant que, si / sinon, fraises, main gauche/droite, grands labyrinthes).
+- 🧭 Tortue — Labyrinthes : 26 niveaux (avancer, tourner, répéter, jusqu à l arrivée, tant que, si / sinon, fraises, main gauche/droite, grands labyrinthes).
 - 🕵️ Agence Z : 36 missions en 6 séries (symboles, César, binaire, texte en binaire, morse/miroir/grille,
   opérations spéciales) + dossier secret (histoire), grades, insignes, et « Courrier » pour échanger des
   messages codés avec un ami par copier-coller (rien n'est envoyé sur Internet).
 - 💡 Atelier de logique : 19 niveaux (interrupteurs, portes NON/ET/OU/OU exclusif/NON-ET, tables de vérité,
   construction de circuits avec des briques, additionneur binaire, défis).
-- 🏭 Usine à machines : 25 niveaux (rampes, tapis, ressorts, ventilateurs, aimants, capteurs, portes, logique,
+- 🏭 Usine à machines : 31 niveaux (rampes, tapis, ressorts, ventilateurs, aimants, capteurs, portes, logique,
   robot Brickbot programmé avec des blocs) + atelier libre avec 3 sauvegardes.
 
 Pour les adultes : boutons « Solution » dans chaque niveau / mission. Page de test automatique : #test

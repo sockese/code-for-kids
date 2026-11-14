@@ -89,3 +89,7 @@ Activité « Atelier de logique » : 5 chapitres, 19 niveaux (boîtes mystère, 
 - Blocs plus grands (échelle adaptée au nombre de blocs) dans Tortue Blocs et Labyrinthes.
 - Bloc de couleur : pastille de couleur au lieu du nom.
 - Indices et messages affichés sur la zone de blocs, plus sur le dessin à réaliser.
+
+## Niveaux ajoutés (v11)
+- Labyrinthes : 26 niveaux (nouveaux : rangée de fraises, escalier fruité, couloirs gourmands, spirale, main droite et fraises).
+- Usine : monde 5 passé à 12 niveaux ; nouveau bloc « attendre 1 seconde » ; niveaux avec « tant que », « si bouton ici », « répéter jusqu à l arrivée », demi-tour, attente, robot + machine.
