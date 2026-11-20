@@ -4,12 +4,12 @@
 
 ### Méthode A — GitHub Pages (sans installer de logiciel)
 1. Créer un compte gratuit sur https://github.com (si besoin).
-2. « New repository » → nom : `tortue-blocs` → **Public** → Create.
+2. « New repository » → nom : `code-for-kids` → **Public** → Create.
 3. « uploading an existing file » → glisser **tout le contenu** du dossier `Algoblocs`
    (index.html, sw.js, manifest.webmanifest, dossiers css, js, icons, vendor…) → Commit.
    (Astuce : si le glisser-déposer refuse les dossiers, utiliser Chrome sur PC.)
 4. Settings → Pages → Source : « Deploy from a branch » → branche `main`, dossier `/ (root)` → Save.
-5. Après ~1 minute, l'adresse est : `https://<votre-pseudo>.github.io/tortue-blocs/`
+5. Après ~1 minute, l'adresse est : `https://<votre-pseudo>.github.io/code-for-kids/`
 
 ### Méthode B — Netlify (encore plus rapide)
 1. Créer un compte gratuit sur https://app.netlify.com

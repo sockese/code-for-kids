@@ -19,7 +19,7 @@ ACTIVITÉS
   robot Brickbot programmé avec des blocs) + atelier libre avec 3 sauvegardes.
 
 Pour les adultes : boutons « Solution » dans chaque niveau / mission. Page de test automatique : #test
-(ex. https://sockese.github.io/tortue-blocs/#test).
+(ex. https://sockese.github.io/code-for-kids/#test).
 
 Fichiers
   SPEC*.md          les spécifications
