@@ -1,7 +1,7 @@
 /* Tortue Blocs — service worker : fonctionnement hors ligne.
    Stratégie : on sert le cache tout de suite, et on le met à jour en arrière-plan
    (les mises à jour de l'appli arrivent donc au lancement suivant). */
-var CACHE = 'tortue-blocs-v11';
+var CACHE = 'tortue-blocs-v12';
 var FILES = [
   './', 'index.html', 'manifest.webmanifest', 'css/style.css', 'css/agence.css', 'css/logique.css', 'css/usine.css',
   'js/turtle.js', 'js/blocks.js', 'js/levels.js', 'js/app.js', 'js/labyrinthe.js', 'js/agence.js', 'js/logique.js', 'js/usine-engine.js', 'js/usine-levels.js', 'js/usine.js', 'js/main.js',
@@ -9,7 +9,7 @@ var FILES = [
   'vendor/media/sprites.png', 'vendor/media/sprites.svg', 'vendor/media/1x1.gif', 'vendor/media/dropdown-arrow.svg',
   'vendor/media/handopen.cur', 'vendor/media/handclosed.cur', 'vendor/media/handdelete.cur',
   'vendor/media/pilcrow.png', 'vendor/media/quote0.png', 'vendor/media/quote1.png',
-  'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png'
+  'icons/logo.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png'
 ];
 
 self.addEventListener('install', function (e) {

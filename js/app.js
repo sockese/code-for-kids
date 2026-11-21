@@ -117,18 +117,32 @@
         '<a class="btn small" href="#/connexion">Changer</a></div>';
     }
     var themeBtn = '<button class="btn small" id="thm" title="Mode clair / sombre">' + (isDark() ? '☀️ Clair' : '🌙 Sombre') + '</button>';
-    $('#topbar').innerHTML = '<a class="logo" href="#/accueil">🧪 <span class="a">Labo</span> <span class="b">Code</span></a>' + nav + user + themeBtn;
+    $('#topbar').innerHTML = '<a class="logo" href="#/accueil"><img class="logo-img" src="icons/logo.svg" alt=""><span class="a">Code</span> <small>for</small> <span class="b">Kids</span></a>' + nav + user + themeBtn;
     $('#thm').onclick = function () { data.theme = isDark() ? 'light' : 'dark'; save(); applyTheme(); route(); };
     var snd = $('#snd');
     if (snd) snd.onclick = function () { data.sound = !data.sound; save(); snd.textContent = data.sound ? '🔊' : '🔇'; beep([660]); };
   }
 
+  /* ---------- à propos ---------- */
+  function viewAbout() {
+    renderHeader('apropos');
+    $('#view').innerHTML = '<div class="about card"><img class="hero-logo" src="icons/logo.svg" alt="Code for Kids">' +
+      '<h1>Code <small>for</small> <span>Kids</span></h1>' +
+      '<p class="lead">Apprendre à programmer en jouant : dessiner avec des blocs, traverser des labyrinthes, décoder des messages secrets, construire des circuits et des machines.<br>' +
+      '<em>Learn to code by playing: draw with blocks, solve mazes, crack secret codes, build circuits and machines.</em></p>' +
+      '<dl><dt>Créateur · Creator</dt><dd>Sébastien Sockeel — <a href="https://github.com/sockese" target="_blank" rel="noopener">@sockese</a></dd>' +
+      '<dt>Code source · Source code</dt><dd><a href="https://github.com/sockese/code-for-kids" target="_blank" rel="noopener">github.com/sockese/code-for-kids</a></dd>' +
+      '<dt>Licence · License</dt><dd>MIT — libre de l’utiliser, la copier et la modifier · free to use, copy and modify</dd>' +
+      '<dt>Crédits · Credits</dt><dd>Éditeur de blocs : <a href="https://developers.google.com/blockly" target="_blank" rel="noopener">Blockly</a> (Google, Apache 2.0). Niveaux, textes et graphismes originaux.</dd></dl>' +
+      '<p><a class="btn primary" href="#/accueil">← Retour</a></p></div>';
+  }
+
   /* ---------- écran d'arrivée ---------- */
   function viewWelcome() {
     renderHeader('bienvenue');
-    $('#view').innerHTML = '<div class="welcome"><div class="hero-emoji">🐢 🕵️ 🧪</div><h1>Labo <span>Code</span></h1>' +
+    $('#view').innerHTML = '<div class="welcome"><img class="hero-logo" src="icons/logo.svg" alt="Code for Kids"><h1>Code <small>for</small> <span>Kids</span></h1>' +
       '<p>Apprends à programmer, résous des labyrinthes et décode des messages secrets en jouant !</p>' +
-      '<a class="btn go big" href="#/connexion">▶ Commencer</a></div>';
+      '<a class="btn go big" href="#/connexion">▶ Commencer</a><p class="about-link"><a href="#/apropos">À propos · About</a></p></div>';
   }
 
   /* ---------- connexion ---------- */
@@ -179,7 +193,7 @@
         '<div class="act-prog"><div class="rankbar"><i style="width:' + pct + '%"></i></div><span>' + pr.done + ' / ' + pr.total + ' · ' + pr.points + ' pts</span></div></a>';
     }).join('');
     $('#view').innerHTML = '<div class="hub"><h1>Bonjour ' + esc(data.current) + ' ' + p.avatar + ' !</h1><p>Choisis une activité :</p>' +
-      '<div class="activities">' + cards + '</div><p><button class="btn small" id="avbtn">Changer d’avatar</button></p></div>';
+      '<div class="activities">' + cards + '</div><p><button class="btn small" id="avbtn">Changer d’avatar</button></p><p class="about-link"><a href="#/apropos">À propos · About</a></p></div>';
     $('#avbtn').onclick = function () {
       var root = $('#modal-root');
       root.innerHTML = '<div class="overlay"><div class="dialog"><h2>Mon avatar</h2><div class="avatars">' +
@@ -709,6 +723,7 @@
     $('#view').className = '';
     $('#modal-root').innerHTML = '';
     if (h === '#test') { viewTest(); return; }
+    if (h === '#/apropos') { viewAbout(); return; }
     var logged = data.current && data.profiles[data.current];
     if (h === '#/connexion') { viewLogin(); return; }
     if (!logged) { if (h === '' || h === '#/' || h === '#/bienvenue') viewWelcome(); else viewLogin(); return; }

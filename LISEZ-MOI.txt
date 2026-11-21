@@ -1,4 +1,4 @@
-LABO CODE — programmer, explorer, décoder
+CODE FOR KIDS — programmer, explorer, décoder
 =========================================
 
 Pour jouer : ouvrir l'adresse du site (ou « index.html ») dans Chrome, Edge ou Firefox.

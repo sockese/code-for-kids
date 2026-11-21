@@ -1,6 +1,6 @@
 {
-  "name": "Labo Code",
-  "short_name": "Labo Code",
+  "name": "Code for Kids",
+  "short_name": "Code for Kids",
   "description": "Programmer, résoudre des labyrinthes et décoder des messages secrets.",
   "lang": "fr",
   "start_url": "./index.html",
